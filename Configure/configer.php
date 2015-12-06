@@ -15,5 +15,7 @@ return [
     'CONFIG_LIST'    => [
         'custom','database','guide','hook','log','modules','route','security','template','cache'
     ],
-    'REFRESH_INTERVAL' => 3600,//刷新间隔
+    'REFRESH_INTERVAL' => 10,//刷新间隔
+    //
+    'CACHE_DRIVER_TYPE'    => \System\Core\Cache::CACHEMODE_MEMCACHE,
 ];

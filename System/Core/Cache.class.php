@@ -25,11 +25,27 @@ class Cache {
      * 惯例配置
      * @var array
      */
-    private static $convention = [];
+    private static $convention = [
+        'DEFAULT_DRIVER'    => self::CACHEMODE_MEMCACHE,
+        'MEMCACHE_CONF'     => [
+            'HOST'  => 'localhost',
+            'PORT'  => 10010,
+            'TIMEOUT'   => 1, // 1秒超时
+            'CACHE_EXPIRE'  => 3600,//默认缓存时间
+        ],
+    ];
     /**
      * @var Cache\CacheInterface
      */
     private static $driver = null;
+
+    /**
+     * 缓存驱动集合数组
+     * @var array
+     */
+    private static $drivers = [];
+
+    private static $inited = false;
 
     /**
      * 初始化缓存类
@@ -37,14 +53,19 @@ class Cache {
      * @throws \System\Exception\CoraxException
      */
     public static function init($driver_type=null){
-        SEK::merge(self::$convention,isset($config)?$config:Configer::load('cache'));
-        if(null === self::$driver){
-            isset($driver_type) or $driver_type = self::$convention['DEFAULT_DRIVER'];
-            $classname = "System\\Core\\Cache\\{$driver_type}";
-//            UDK::dumpout($classname,class_exists($classname));
-            self::$driver = new $classname(self::$convention);
+        //检查是否经过初始化过了
+        if(false === self::$inited){
+            //注意：Configer::read方法不需要初始化所以能安全使用
+            SEK::merge(self::$convention,Configer::read(CONFIG_PATH.'cache.php'));
+            self::$inited = true;
         }
 
+        //检查对应的驱动是否设置过了
+        if(!isset(self::$drivers[$driver_type])){
+            isset($driver_type) or $driver_type = self::$convention['DEFAULT_DRIVER'];
+            $classname = "System\\Core\\Cache\\{$driver_type}";
+            self::$driver = new $classname(self::$convention);
+        }
     }
 
     /**
@@ -52,21 +73,23 @@ class Cache {
      * @param string $key 缓存数据ID
      * @param mixed $value 缓存数据
      * @param int $time 缓存时间,如果设置为0则认为永不过期
+     * @param string $drivertype 驱动类型
      * @return bool
      */
-    public static function set($key,$value,$time=0){
-        null === self::$driver and self::init();
+    public static function set($key,$value,$time=0,$drivertype=null){
+        self::init($drivertype);
         return self::$driver->set($key,$value,$time);
     }
 
     /**
      * 获取缓存数据
      * @param $key
-     * @param null $replacement 当缓存数据不存在时返回的代替值,默认不存在时返回null
+     * @param mixed $replacement 当缓存数据不存在时返回的代替值,默认不存在时返回null
+     * @param string $drivertype 驱动类型
      * @return mixed
      */
-    public static function get($key,$replacement=null){
-        null === self::$driver and self::init();
+    public static function get($key,$replacement=null,$drivertype=null){
+        self::init($drivertype);
         $rst = self::$driver->get($key);
         return (false === $rst)?$replacement:$rst;
     }

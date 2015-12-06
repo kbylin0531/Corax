@@ -7,6 +7,7 @@
  */
 namespace Application\Home\Controller;
 use System\Core\Cache;
+use System\Core\Configer;
 use System\Core\Controller;
 use System\Core\Router;
 use System\Util\UDK;
@@ -21,7 +22,6 @@ class IndexController extends Controller {
 //        $this->testURLParse();
 //        $this->testURLCreater();
 
-        Cache::init();
 
         echo __METHOD__;
     }

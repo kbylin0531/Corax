@@ -8,15 +8,14 @@
 namespace System\Core;
 use System\Exception\CoraxException;
 use System\Corax;
-use System\Util\SEK;
-use System\Util\UDK;
 
 defined('BASE_PATH') or die('No Permission!');
 /**
  * Class Configer
  * 配置加载帮助类
- * 由于SAE部署的需要，决定配置文件的读取不能依赖Storage类
- * 因为配置文件仅仅涉及本地配置文件的读取，而Storage则涉及上传等操作可能导致权限的不足
+ *  由于SAE部署的需要，决定配置文件的读取不能依赖Storage类
+ *  因为配置文件仅仅使用include本地的配置文件，而Storage则涉及上传等操作可能导致权限的不足
+ * 由于是include文件，故无法设置回掉等复杂的类型,否则会被替换成另一种形式
  * @package System\Core
  */
 class Configer{
@@ -38,7 +37,11 @@ class Configer{
         'CONFIG_LIST'    => [
             'custom','database','guide','hook','log','modules','route','security','template','cache'
         ],
-        'REFRESH_INTERVAL' => 3600,//刷新间隔
+        //刷新间隔,经过这段时间间隔后，缓存中的数据将被清空，需要重新获取,这么提高了效率和实时性
+        //此外用户可以到Memcache服务管理页面手动刷新
+        'REFRESH_INTERVAL' => 3600,
+        //缓存方式默认为文件缓存,本地部署使用，SAE环境下不适用
+        'CACHE_DRIVER_TYPE' => Cache::CACHEMODE_FILE,
     ];
 
     /**
@@ -49,6 +52,7 @@ class Configer{
 
     /**
      * 初始化配置类
+     * 主要是获取或者设置配置集合
      * @param bool $forceRefresh 是否强制刷新配置，默认不刷新
      * @return void
      */
@@ -56,17 +60,18 @@ class Configer{
         Corax::status('config_init_begin');
         //获取配置缓存
 
-        if($forceRefresh or
-                (null === (self::$config_cache = Cache::get('configure',null))) ){
+        //要求强制刷新或者获取配置缓存为空时
+        if($forceRefresh or (null === (self::$config_cache = Cache::get('configure',null))) ){
             //配置未缓存
             self::$convention = self::read(CONFIG_PATH.'configer.php');
             foreach(self::$convention['CONFIG_LIST'] as $item){
                 self::$config_cache[$item] = self::read(CONFIG_PATH."{$item}.php");
             }
+            //缓存
             Cache::set('configure',self::$config_cache,self::$convention['REFRESH_INTERVAL']);
-            Corax::status('config_init_maketemp_done');
+            Corax::status('config_init_create_cache_done');
         }
-        Corax::status('config_init_begin');
+        Corax::status('config_init_end');
     }
 
     /**
@@ -76,10 +81,11 @@ class Configer{
      * @throws CoraxException
      */
     public static function load($confnm='custom'){
+        //先要经过初始化
         null === self::$config_cache and self::init();
         $confnm = strtolower($confnm);
         if(!isset(self::$config_cache[$confnm])){//不存在该配置
-            throw new CoraxException($confnm);
+            throw new CoraxException("Configure item '{$confnm}' not exist!");
         }
         return self::$config_cache[$confnm];
     }
@@ -88,65 +94,78 @@ class Configer{
      * 示例：
      *  database.DB_CONNECT.0.type
      * 除了第一段外要注意大小写
-     * @param string $confnm
-     * @return mixed
+     * @param string $confnm 配置名称
+     * @param null $rplvalue 当指定的配置项不存在时,仅仅在获取第二段开始的部分时有效
+     * @return mixed 返回配置信息数组
      * @throws CoraxException
      */
-    public static function get($confnm = null){
+    public static function get($confnm = null,$rplvalue=null){
         null === self::$config_cache and self::init();
         $configes = null;//配置分段，如果未分段则保持null的值
-        $value = null;//最终将被返回的值
+
         if(null === $confnm){//默认参数时返回全部
             return self::$config_cache;
         }
+        //检测是否分段
         if(false !== strpos($confnm,'.')){
-            $configes = explode(',',$confnm);
+            $configes = explode('.',$confnm);
             $confnm = array_shift($configes);
         }
-        $confnm = strtolower($confnm);
-        if(!isset(self::$config_cache[$confnm])){//不存在该配置
-            throw new CoraxException($confnm);
-        }
-        $value = self::$config_cache[$confnm];
+
+        //获取第一段的配置
+        $rtn = self::load($confnm);
+
+        //如果为true表示是经过分段的
         if($configes){
             foreach($configes as $val){
-                if(isset($value[$val])){
-                    $value = $value[$val];
+                $val = strtoupper($val);//配置项全部大写
+                if(isset($rtn[$val])){
+                    $rtn = $rtn[$val];
                 }else{
-                    return null;
+                    return $rplvalue;
                 }
             }
         }
-        return $value;
+        return $rtn;
     }
 
     /**
-     * @param $confnm
-     * @param $value
-     * @return bool
-     * @throws CoraxException
+     * 设置临时配置项
+     * 下次请求时临时的配置将被清空
+     * <code>
+     *  UDK::dump(Configer::get());
+     *  Configer::set('custom.name.value',true);
+     *  UDK::dump(Configer::get());
+     * </code>
+     * @param string $confnm 配置项名称，同get方法，可以是分段的设置
+     * @param mixed $value 配置项的值
+     * @return void
+     * @throws CoraxException 要设置的第一项不存在时抛出异常
      */
     public static function set($confnm,$value){
         null === self::$config_cache and self::init();
         $configes = null;//配置分段，如果未分段则保持null的值
-        $var = null;
+
         if(false !== strpos($confnm,'.')){
-            $configes = explode(',',$confnm);
+            $configes = explode('.',$confnm);
             $confnm = array_shift($configes);
         }
+
         $confnm = strtolower($confnm);
         if(!isset(self::$config_cache[$confnm])){//不存在该配置
             throw new CoraxException($confnm);
         }
-        $var = self::$config_cache[$confnm];
-        foreach($configes as $val){
-            if(isset($value[$val])){
-                $var = $var[$val];
-            }else{
-                return false;
+        $confvars = &self::$config_cache[$confnm];
+
+        if($configes){
+            foreach($configes as $val){
+                if(!isset($confvars[$val])){
+                    $confvars[$val] = [];
+                }
+                $confvars = &$confvars[$val];
             }
+            $confvars = $value;
         }
-        return true;
     }
 
     /**
@@ -158,7 +177,6 @@ class Configer{
      */
     public static function read($path,$type=self::CONFIGTYPE_PHP){
         static $_conf = array();
-        null === self::$config_cache and self::init();
         if(!isset($_conf[$path])){//部署运行阶段配置文件不会发生变化
             switch($type){
                 //other config type ...
@@ -172,49 +190,23 @@ class Configer{
 
     /**
      * 将配置写入到配置文件中文件中
+     * 原本用于本地部署的写入配置集合配置文件
+     * SAE部署的环境下无法写入，由于有了Cache类的get和set方法,这个方法将没有使用的余地
      * @param string $path 配置文件的完整路径
-     * @param array $config 配置数组
-     * @param string $type 配置文件类型
-     * @return bool
+     * @param array  $config 配置数组
+     * @param string $type 写入的配置文件类型
+     * @return bool 是否写入成功
      */
     public static function write($path,array $config,$type=self::CONFIGTYPE_PHP){
-        null === self::$config_cache and self::init();
         switch($type){
             //...other config type ...
             case self::CONFIGTYPE_PHP:
             default:
                 $filename = pathinfo($path,PATHINFO_FILENAME);
-                self::$config_cache[substr($filename,0,strpos($filename,'.'))] = $config;
-                return Storage::write($path,'<?php return '.var_export($config,true).'; ?>'); //闭包函数无法写入
+                $confname = substr($filename,0,strpos($filename,'.')); // 配置名称
+                self::$config_cache[$confname] = $config;
+                return Storage::write($path,'<?php return '.var_export($config,true).';'); //闭包函数无法写入
         }
-    }
-
-    /**
-     * 将配置写入数组
-     * 自动配置信息一般随模块的安装而生成的，不能随意修改
-     * @param string$confnm
-     * @param array $config
-     * @param null $path
-     * @return bool
-     */
-    public static function writeConfig($confnm,array $config,$path){
-        null === self::$config_cache and self::init();
-        //配置文件路径，不同的配置文件类型拥有不同的后缀
-        $path = "{$path}/{$confnm}.php";
-        if(Storage::has($path)){
-            //文件存在，读取并合并配置
-            $origin_config = self::read($path);
-            SEK::merge($origin_config,$config);//后者覆盖前者
-            $config = $origin_config;
-        }
-        return Storage::write($path,'<?php return '.var_export($config,true).'; ?>'); //闭包函数无法写入
-    }
-
-    /**
-     * TODO:编译原始配置，使其呈现较高的效率
-     */
-    public static function build(){
-
     }
 
 }
