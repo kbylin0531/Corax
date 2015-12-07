@@ -10,7 +10,8 @@
  * Cache类的配置
  */
 return [
-    'DEFAULT_DRIVER'    => \System\Core\Cache::CACHEMODE_MEMCACHE,
+    // 设置成null时，默认的缓存将视不同的使用环境而定
+    'DEFAULT_DRIVER'    => null,
 
     //MEMCACHE缓存配置
     'MEMCACHE_CONF'     => [

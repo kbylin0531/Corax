@@ -17,5 +17,5 @@ return [
     ],
     'REFRESH_INTERVAL' => 10,//刷新间隔
     //缓存驱动
-    'CACHE_DRIVER_TYPE'    => \System\Core\Cache::CACHEMODE_FILE,
+    'CACHE_DRIVER_TYPE'    => null,
 ];

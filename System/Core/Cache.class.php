@@ -25,7 +25,7 @@ class Cache {
      * @var array
      */
     private static $convention = [
-        'DEFAULT_DRIVER'    => self::CACHEMODE_MEMCACHE,
+        'DEFAULT_DRIVER'    => null,
         'MEMCACHE_CONF'     => [
             'HOST'  => 'localhost',
             'PORT'  => 10010,
@@ -57,6 +57,12 @@ class Cache {
             //注意：Configer::read方法不需要初始化所以能安全使用
             SEK::merge(self::$convention,Configer::read(CONFIG_PATH.'cache.php'));
             self::$inited = true;
+        }
+
+        //根据不同环境设置不同的缓存环境
+        if(!isset(self::$convention['DEFAULT_DRIVER'])){
+            self::$convention['DEFAULT_DRIVER'] =
+                (RUNTIME_ENVIRONMENT === 'Sae') ? self::CACHEMODE_MEMCACHE : self::CACHEMODE_FILE;
         }
 
         //检查对应的驱动是否设置过了
