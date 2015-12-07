@@ -7,7 +7,6 @@
  */
 namespace System\Core;
 use System\Util\SEK;
-use System\Util\UDK;
 
 /**
  * Class Cache 缓存类
@@ -17,9 +16,9 @@ class Cache {
     /**
      * 缓存模式
      */
+    const CACHEMODE_MEMCACHE = 'Memcached';
     const CACHEMODE_FILE = 'File';
     const CACHEMODE_KVDB = 'Kvdb';
-    const CACHEMODE_MEMCACHE = 'Memcached';
 
     /**
      * 惯例配置
@@ -61,11 +60,20 @@ class Cache {
         }
 
         //检查对应的驱动是否设置过了
+        self::using($driver_type);
+    }
+
+    /**
+     * 切换使用驱动类型
+     * @param null|string $driver_type 驱动类型
+     */
+    public static function using($driver_type=null){
         if(!isset(self::$drivers[$driver_type])){
             isset($driver_type) or $driver_type = self::$convention['DEFAULT_DRIVER'];
             $classname = "System\\Core\\Cache\\{$driver_type}";
-            self::$driver = new $classname(self::$convention);
+            self::$drivers[$driver_type] = new $classname(self::$convention);
         }
+        self::$driver = self::$drivers[$driver_type];
     }
 
     /**

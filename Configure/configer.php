@@ -16,6 +16,6 @@ return [
         'custom','database','guide','hook','log','modules','route','security','template','cache'
     ],
     'REFRESH_INTERVAL' => 10,//刷新间隔
-    //
-    'CACHE_DRIVER_TYPE'    => \System\Core\Cache::CACHEMODE_MEMCACHE,
+    //缓存驱动
+    'CACHE_DRIVER_TYPE'    => \System\Core\Cache::CACHEMODE_FILE,
 ];

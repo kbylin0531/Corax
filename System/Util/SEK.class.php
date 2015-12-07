@@ -22,7 +22,6 @@ final class SEK {
      * @param array $sourse 并入目标的数组
      * @param bool|false $cover 默认进行遍历覆盖
      * @return void
-     * @throws ParameterInvalidException
      */
     public static function merge(array &$dest,array $sourse,$cover=false){
         if($cover){
