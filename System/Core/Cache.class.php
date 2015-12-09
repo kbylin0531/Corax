@@ -44,7 +44,7 @@ class Cache {
      */
     private static $drivers = [];
 
-    private static $inited = false;
+    private static $hasInited = false;
 
     /**
      * 初始化缓存类
@@ -53,10 +53,9 @@ class Cache {
      */
     public static function init($driver_type=null){
         //检查是否经过初始化过了
-        if(false === self::$inited){
+        if(false === self::$hasInited){
             //注意：Configer::read方法不需要初始化所以能安全使用
             SEK::merge(self::$convention,Configer::read(CONFIG_PATH.'cache.php'));
-            self::$inited = true;
         }
 
         //根据不同环境设置不同的缓存环境
@@ -67,6 +66,7 @@ class Cache {
 
         //检查对应的驱动是否设置过了
         self::using($driver_type);
+        self::$hasInited = true;
     }
 
     /**

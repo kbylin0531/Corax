@@ -34,7 +34,7 @@ class Configer{
      * @var array
      */
     private static $convention = [
-        //需要加载的配置文件数组
+        //需要加载的配置文件名称数组
         'CONFIG_LIST'    => [
             'custom','database','guide','hook','log','modules','route','security','template','cache'
         ],

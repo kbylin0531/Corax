@@ -7,6 +7,17 @@
  */
 namespace System\Core\Cache;
 
+/**
+ * Interface CacheInterface 缓存驱动接口类
+ *
+ * 实现的驱动包括：
+ *  ①文件系统
+ *  ②memcache
+ *  ③KVDB
+ *  ④redis
+ *
+ * @package System\Core\Cache
+ */
 interface CacheInterface {
     /**
      * @param $key

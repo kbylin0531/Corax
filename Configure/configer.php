@@ -13,7 +13,7 @@
 return [
     //需要加载的配置文件数组
     'CONFIG_LIST'    => [
-        'custom','database','guide','hook','log','modules','route','security','template','cache'
+        'custom','database','guide','hook','log','modules','route','security','template','cache','session',
     ],
     'REFRESH_INTERVAL' => 10,//刷新间隔
     //缓存驱动

@@ -37,6 +37,8 @@ class Storage {
      */
     private static $driver = null;
 
+    private static $hasInited = false;
+
     /**
      * 私有化构造函数
      */
@@ -70,6 +72,7 @@ class Storage {
         //实例化驱动类
         $driverName = "System\\Core\\Storage\\{$mode}";
         self::$driver = new $driverName();
+        self::$hasInited = true;
         Corax::status('storage_init_done');
     }
 
@@ -81,6 +84,7 @@ class Storage {
      * @return string|false 文件不存在时返回false
      */
     public static function read($filepath,$file_encoding='UTF-8',$output_encode='UTF-8'){
+        self::$hasInited or self::init();
         return self::$driver->read($filepath,$file_encoding,$output_encode);
     }
 
@@ -92,6 +96,7 @@ class Storage {
      * @return int 返回写入的字节数目,失败时抛出异常
      */
     public static function write($filepath,$content,$write_encode='UTF-8'){
+        self::$hasInited or self::init();
         return self::$driver->write($filepath,$content,$write_encode);
     }
 
@@ -104,6 +109,7 @@ class Storage {
      * @return string 返回写入内容
      */
     public static function append($filename,$content,$write_encode='UTF-8'){
+        self::$hasInited or self::init();
         return self::$driver->append($filename,$content,$write_encode);
     }
 
@@ -114,6 +120,7 @@ class Storage {
      * @return boolean
      */
     public static function has($filename){
+        self::$hasInited or self::init();
         return self::$driver->has($filename);
     }
 
@@ -125,6 +132,7 @@ class Storage {
      * @return boolean
      */
     public static function unlink($filename){
+        self::$hasInited or self::init();
         return self::$driver->unlink($filename);
     }
 
@@ -137,6 +145,7 @@ class Storage {
      * @return array|mixed
      */
     public static function filemtime($filename,$type=null){
+        self::$hasInited or self::init();
         return self::$driver->filemtime($filename,$type);
     }
 
@@ -146,6 +155,7 @@ class Storage {
      * @return mixed
      */
     public static function filesize($filename){
+        self::$hasInited or self::init();
         return self::$driver->filesize($filename);
     }
 
@@ -156,6 +166,7 @@ class Storage {
      * @return bool true成功删除，false删除失败
      */
     public static function removeFolder($dir,$recursion=false) {
+        self::$hasInited or self::init();
         return self::$driver->removeFolder($dir,$recursion);
     }
 
@@ -167,6 +178,7 @@ class Storage {
      * @return bool
      */
     public static function makeFolder($fullpath,$auth = 0755){
+        self::$hasInited or self::init();
         return self::$driver->makeFolder($fullpath,$auth);
     }
     /**
@@ -179,6 +191,7 @@ class Storage {
      * @return array
      */
     public static function readFolder($dir){
+        self::$hasInited or self::init();
         return self::$driver->readFolder($dir);
     }
 

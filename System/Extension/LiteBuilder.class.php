@@ -15,6 +15,7 @@ use System\Core\Storage;
  * @package System\Extension
  */
 class LiteBuilder {
+
     /**
      * 程序结束时调用
      * @param string $litefile 生成的lite文件名称

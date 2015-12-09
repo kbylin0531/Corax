@@ -21,6 +21,7 @@ class Controller{
      * @var array
      */
     protected $_tVars = array();
+
     /**
      * 模板引擎实例
      * @var View
@@ -36,6 +37,7 @@ class Controller{
         'c' => null,//当前访问的控制器名称
         't' => null,//默认的模板主题
     );
+
     /**
      * 模块目录
      * @var string

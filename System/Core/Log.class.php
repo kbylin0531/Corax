@@ -8,6 +8,7 @@
 namespace System\Core;
 use System\Corax;
 use System\Exception\ClassNotFoundException;
+use System\Exception\CoraxException;
 use System\Util\SEK;
 
 defined('BASE_PATH') or die('No Permission!');
@@ -65,11 +66,13 @@ class Log{
      */
     private static $log_rate = null;
 
+    private static $hasInited = false;
+
     /**
      * 初始化日志类
      * @param string $type 日志驱动类型
      * @param int $rate    日志记录频率
-     * @throws ClassNotFoundException
+     * @throws CoraxException
      */
     public static function init($type = self::LOGTYPE_FILE,$rate = self::LOGRATE_DAY){
         Corax::status('log_init_begin');
@@ -78,10 +81,11 @@ class Log{
         if(!isset(self::$_driver)) {
             $clsnm = "System\\Core\\Log\\$type";
             if(!class_exists($clsnm)){
-                throw new ClassNotFoundException($clsnm);
+                throw new CoraxException($clsnm);
             }
             self::$_driver = new $clsnm();
         }
+        self::$hasInited = true;
         Corax::status('log_init_end');
     }
 
@@ -94,7 +98,7 @@ class Log{
      * @Exception FileWriteFailedException
      */
     public static function write($content,$level=self::LOG_LEVEL_DEBUG){
-        isset(self::$_driver) or self::init();
+        self::$hasInited or self::init();
 //        Util::dump($content,$level);exit;
         return self::$_driver->write($content,$level);
     }
@@ -105,7 +109,7 @@ class Log{
      * @return string
      */
     public static function trace(){
-        isset(self::$_driver) or self::init();
+        self::$hasInited or self::init();
         $content = '';
         if(DEBUG_MODE_ON){
             $params = func_get_args();
@@ -122,7 +126,7 @@ class Log{
      * @return array
      */
     public static function getCache(){
-        isset(self::$_driver) or self::init();
+        self::$hasInited or self::init();
         return self::$_driver->getCache();
     }
 
@@ -152,7 +156,7 @@ class Log{
      * @return string
      */
     public static function read($path,$level=self::LOG_LEVEL_DEBUG){
-        isset(self::$_driver) or self::init();
+        self::$hasInited or self::init();
         return self::$_driver->read($path,$level);
     }
 

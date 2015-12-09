@@ -13,6 +13,7 @@ use System\Core\Log;
 use System\Core\Router;
 use System\Core\Storage;
 use System\Exception\CoraxException;
+use System\Extension\LiteBuilder;
 use System\Util\SEK;
 
 defined('BASE_PATH') or die('No Permission!');
@@ -187,6 +188,7 @@ final class Corax {
             'System\Core\Router'        => SYSTEM_PATH.'Core/Router.class.php',
 
             //核心类常用驱动
+            'System\Core\Cach\File'     => SYSTEM_PATH.'Core/Cache/File.class.php',
 //            'System\Core\LogDriver\FileDriver'          => SYSTEM_PATH.'Core/LogDriver/File.class.php',
 //            'System\Core\StorageDriver\FileDriver'    => SYSTEM_PATH.'Core/Storage/Common.class.php',
 
@@ -195,42 +197,23 @@ final class Corax {
         ];
         self::$_classes = array_merge(self::$_classes,self::$_prev_loaded_classes);
 
-        define('LITE_FILE_NAME',RUNTIME_PATH.APP_NAME.'.lite.php');//运行时核心文件
-
-        //初始化
-        Storage::init();
-        Log::init();
-        Configer::init();
-
         self::status('init_end');
     }
 
-    /**
-     * 获取预加载的核心类
-     * @param null|string $clsnm 类名称，传入null时返回全部
-     * @return array
-     */
-    public static function getClasses($clsnm = null){
-        if(isset($clsnm)){
-            return self::$_classes[$clsnm];
-        }else{
-            return self::$_classes;
-        }
-    }
 
     public static function start(){
         self::status('start');
         ob_start();//ob缓存开启，直到结束都不会自动输出
 
-        self::status('load_lite_begin');
-
-        //考虑到云服务器上lite文件直接使用is_file判断和包含，需要手动上传
-        //TODO:全部转到LiteBuilder类中进行
-        if(is_file(LITE_FILE_NAME)){
-            self::status('load_lite_mid');
-            include_once LITE_FILE_NAME;
+        if(RUNTIME_ENVIRONMENT === 'Common'){
+            define('LITE_FILE_NAME',RUNTIME_PATH.APP_NAME.'.lite.php');//运行时核心文件
+            //考虑到云服务器上lite文件直接使用is_file判断和包含，需要手动上传
+            if(is_file(LITE_FILE_NAME)){
+                self::status('load_lite_mid');
+                include_once LITE_FILE_NAME;
+            }
         }
-        self::status('load_lite_end');
+        self::loadFunctions();
 
         //解析URL
         self::$_url_components = Router::analyse();
@@ -250,10 +233,32 @@ final class Corax {
         if(DEBUG_MODE_ON and PAGE_TRACE_ON){
             self::showTrace();//页面跟踪信息显示
         }
-//        if(DEBUG_MODE_ON or !is_file(LITE_FILE_NAME)){
-//            LiteBuilder::build(LITE_FILE_NAME,self::$_prev_loaded_classes);
-//        }
+
+        if(RUNTIME_ENVIRONMENT === 'Common' and (DEBUG_MODE_ON or !is_file(LITE_FILE_NAME))){
+            LiteBuilder::build(LITE_FILE_NAME,self::$_prev_loaded_classes);
+        }
         ob_get_level() > 0 and ob_end_flush();
+    }
+
+    /**
+     * 获取预加载的核心类
+     * @param null|string $clsnm 类名称，传入null时返回全部
+     * @return array
+     */
+    public static function getClasses($clsnm = null){
+        if(isset($clsnm)){
+            return self::$_classes[$clsnm];
+        }else{
+            return self::$_classes;
+        }
+    }
+
+
+    private static function loadFunctions(){
+        $funcs = Configer::load('function');
+        foreach($funcs as $funcname){
+            include BASE_PATH."Funtions/{$funcname}.php";
+        }
     }
 
     /**
@@ -262,7 +267,6 @@ final class Corax {
     public static function showNotFound(){
         self::loadTemplate('404');
     }
-
 
     /**
      * 显示trace页面

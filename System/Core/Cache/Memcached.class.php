@@ -13,7 +13,7 @@ use System\Exception\CoraxException;
  *
  * @package System\Core\Cache
  */
-class Memcached implements CacheInterface{
+class Memcached implements CacheInterface {
     /**
      * @var \Memcache
      */
@@ -32,14 +32,15 @@ class Memcached implements CacheInterface{
         //根据不同的环境使用不同的配置
         if('Sae' === RUNTIME_ENVIRONMENT){
             $this->mmc = new \Memcache();
-            $ret = @$this->mmc->connect();            //使用本应用Memcache
 //            $ret = $this->mmc->connect("accesskey"); //使用其他应用的Memcache
-            if(false === $ret){
+            if(false === @$this->mmc->connect()){//使用本应用Memcache
                 throw new CoraxException('Initialize memcache for sae failed!');
             }
         }else{
             $this->mmc = new \Memcache();
-            $this->mmc->connect($config['HOST'], $config['PORT'], $config['TIMEOUT']);
+            if(false === $this->mmc->connect($config['HOST'], $config['PORT'], $config['TIMEOUT'])){
+                throw new CoraxException('Memcache connect failed!');
+            }
         }
     }
 

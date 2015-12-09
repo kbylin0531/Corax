@@ -70,15 +70,7 @@ class View{
     public function __construct($context){
         self::$_context = $context;
         defined('SMARTY_DIR') or define('SMARTY_DIR',BASE_PATH.'System/Projects/Smarty/libs/');
-        /*
-        defined('SMARTY_PLUGIN_DIR') or define('SMARTY_PLUGIN_DIR',SMARTY_DIR.'sysplugins/');
-        isset(self::$_smarty_lite_file) or self::$_smarty_lite_file = RUNTIME_PATH.'Smarty.lite.php';
-        if(DEBUG_MODE_ON or !Storage::has(self::$_smarty_lite_file)){
-            self::buildSmartyLite();
-        }
-//        Util::dump(self::$_smarty_lite_file);exit;
-        include_once self::$_smarty_lite_file;
-*/
+
         if(!isset(self::$tpl_engine)){
             require_once SMARTY_DIR.'Smarty.class.php';
             static::$tpl_engine = new \Smarty();
@@ -148,8 +140,6 @@ class View{
      * @param null $cache_id
      * @param null $compile_id
      * @param null $parent
-     * @throws FileNotFoundException 模板文件找不到时抛出
-     * @throws \Exception
      */
     public function display($template = null, $cache_id = null, $compile_id = null, $parent = null){
 //        Util::dump($template,$this->_context,TEMPLATE_ENGINE);exit;
