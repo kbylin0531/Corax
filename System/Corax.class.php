@@ -257,7 +257,7 @@ final class Corax {
     private static function loadFunctions(){
         $funcs = Configer::load('function');
         foreach($funcs as $funcname){
-            include BASE_PATH."Funtions/{$funcname}.php";
+            include BASE_PATH."Functions/{$funcname}.php";
         }
     }
 

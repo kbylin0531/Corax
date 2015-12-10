@@ -130,6 +130,25 @@ class File implements CacheInterface {
     }
 
     /**
+     * 加强的反序列化
+     * http://www.bubuko.com/infodetail-265002.html
+     *
+     * 使用unserialize函数将数据储存到数据库的时候遇到了这个报错，
+     * 后来发现是将gb2312转换成utf-8格式之后，每个中文的字节数从2个增加到3个之后导致了反序列化的时候判断字符长度出现了问题，
+     * 所以需要使用正则表达式将序列化的数组中的表示字符长度的值重新计算一遍
+     *
+     * @param $serial_str
+     * @return mixed
+     */
+    private function mb_unserialize($serial_str) {
+        $out = preg_replace_callback ('!s:(\d+):"(.*?)";!se', function($matches){
+            return "'s:'.strlen('{$matches[2]}').':\"{$matches[2]}\";'";
+        }, $serial_str );
+        return unserialize($out);
+    }
+
+
+    /**
      * 写入缓存
      * @access public
      * @param string $name 缓存变量名
