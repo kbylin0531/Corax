@@ -11,6 +11,7 @@ use System\Corax;
 use System\Core\Router;
 use System\Exception\CoraxException;
 use System\Util\SEK;
+use System\Util\UDK;
 
 /**
  * Class URLParser URL解析类
@@ -27,6 +28,9 @@ class URLParser extends Router {
      */
     public static function parse($uri=null,$mode=null){
         isset($mode) or $mode = self::checkMode($uri);
+
+//        UDK::dumpout($mode);
+
         switch($mode){
             case self::URLMODE_COMMON: return self::parseByCommon($uri);         break;
             case self::URLMODE_COMPATIBLE: return self::parseByCompatible($uri); break;
@@ -122,8 +126,12 @@ class URLParser extends Router {
             'p' => null,
         ];
 
+
+//        UDK::dump($pathinfo);
         //获取pathinfo设置
         isset($pathinfo) or $pathinfo = self::getPathInfo();
+
+//        UDK::dumpout($pathinfo);
 
         if($pathinfo){
             $pathinfo = self::stripMasqueradeTail($pathinfo);

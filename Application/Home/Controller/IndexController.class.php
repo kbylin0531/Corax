@@ -21,7 +21,7 @@ class IndexController extends Controller {
     public function index(){
 //        $this->testURLParse();
 //        $this->testURLCreater();
-
+        dump('hello world!');
 
         echo __METHOD__;
     }

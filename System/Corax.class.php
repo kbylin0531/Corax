@@ -15,6 +15,7 @@ use System\Core\Storage;
 use System\Exception\CoraxException;
 use System\Extension\LiteBuilder;
 use System\Util\SEK;
+use System\Util\UDK;
 
 defined('BASE_PATH') or die('No Permission!');
 
@@ -214,10 +215,8 @@ final class Corax {
             }
         }
         self::loadFunctions();
-
         //解析URL
         self::$_url_components = Router::analyse();
-//        SEK::dump(self::$_url_components);
         //执行结果
         Dispatcher::execute(
             self::$_url_components['m'], self::$_url_components['c'],
@@ -314,8 +313,6 @@ final class Corax {
                 'Files'         => array_merge(['Total'=>count($info)],$info),
                 'Status'        => $cmprst,
                 'SQL'           => Dao::log(true),
-                'Log'           => Log::getCache(),
-//                'Error'         => self::$_errorCache,
                 'GET'           => $_GET,
                 'POST'          => $_POST,
                 'SERVER'        => $_SERVER,

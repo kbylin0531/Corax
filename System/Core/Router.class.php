@@ -229,6 +229,8 @@ class Router{
                 }
             }
 
+//            UDK::dumpout($url);
+
             //解析URL
             $parsed = URLParser::parse($url);
             self::pushParsed($parsed);
@@ -393,7 +395,13 @@ class Router{
             if(isset($_SERVER['PATH_INFO'])) {
                 $pathinfo = $_SERVER['PATH_INFO'];
             }else{
-                if($_SERVER['REQUEST_URI'] !== $_SERVER['SCRIPT_NAME']){
+                //访问的URL：http://localhost:8056/corax/
+                //出现的异常时将corax/视为action导致访问的资源是/Home/Index/corax
+                //于是会出现调度异常
+                //ReflectionException : Method Application\Home\Controller\IndexController::corax() does not exist
+//                UDK::dumpout($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']);
+
+                if(strlen($_SERVER['REQUEST_URI']) > strlen($_SERVER['SCRIPT_NAME'])){
                     //在不支持PATH_INFO...或者PATH_INFO不存在的情况下(URL省略将被认定为普通模式)
                     //REQUEST_URI获取原生的URL地址进行解析(返回脚本名称后面的部分)
                     $pos = stripos($_SERVER['REQUEST_URI'],$_SERVER['SCRIPT_NAME']);
@@ -409,6 +417,7 @@ class Router{
 //        UDK::dumpout($pathinfo,$_SERVER['REQUEST_URI'],$_SERVER['SCRIPT_NAME'],substr($_SERVER['REQUEST_URI'], strlen($_SERVER['SCRIPT_NAME'])));
         return $pathinfo;
     }
+
     /**
      * 模块序列转换成数组形式
      * 且数组形式的都是大写字母开头的单词形式
