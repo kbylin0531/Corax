@@ -10,6 +10,10 @@ use System\Core\Log;
 use System\Core\Storage;
 use System\Util\SEK;
 
+/**
+ * Class File 日志的文件驱动，文件驱动使用Storage类进行文件的IO操作，云服务器不推荐使用Storage，建议使用
+ * @package System\Core\Log
+ */
 class File extends LogDriver{
 
     /**

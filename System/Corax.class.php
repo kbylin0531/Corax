@@ -386,7 +386,6 @@ final class Corax {
                         include_once self::$_classes[$clsnm] = $filename;
                     }
                 }
-
             }
         }
     }

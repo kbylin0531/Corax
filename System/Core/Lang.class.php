@@ -7,9 +7,11 @@
  */
 namespace System\Core;
 use System\Exception\CoraxException;
+use System\Util\SEK;
 
 /**
  * Class LangHelper 语言助手
+ * 不依赖本地文件
  * @package System\Core
  */
 class Lang{
@@ -20,63 +22,43 @@ class Lang{
     const LANG_ZH_CN = 'zh-cn';
     const LANG_ZH_TW = 'zh-tw';
     const LANG_EN_US = 'en-us';
-    /**
-     * 语言包类型，默认为简体中文
-     * @var string
-     */
-    private static $default_lang = self::LANG_ZH_CN;
-    /**
-     * 系统以外语言包的路径
-     * @var string
-     */
-    private static $outer_path  = null;
+
+    private static $convention = [
+        //外部语言包地址(相对于BASE_PATH而言)
+        'LANG_OUTER_PATH'   => 'Lang/',
+        'DEFAULT_LANG'      => self::LANG_ZH_CN,
+    ];
+
     /**
      * 语言包缓存
      * @var array
      */
-    private static $lang_cache = array();
-    /**
-     * 是否已经完成加载
-     * @var bool
-     */
-    private static $_has_loaded = false;
+    private static $lang_cache = [];
+
+    private static $hasInited = false;
 
     /**
      * 私有化构造
      */
     private function __construct(){}
 
+    public static function init(array $config = null){
+        //惯例配置设置
+        isset($config) or $config = Configer::load('lang');
+        SEK::merge(self::$convention,$config);
 
-    /**
-     * 设置外部语言包的路径
-     * @param $path
-     * @return void
-     * @throws CoraxException
-     */
-    public static function setOuterPath($path){
-        if(!Storage::has($path)){
-            throw new CoraxException($path);
-        }
-        self::$outer_path = $path;
+        self::loadLang();
+        self::$hasInited = true;
     }
 
     /**
-     * 设置语言包类型
-     * @param $type
+     * 陈述标识符对应的语言
+     * @param $identifier
+     * @return null
      */
-    public function setLang($type){
-        self::$default_lang = $type;
-    }
-    /**
-     * 获取语言包数组
-     * @param string $type null时获取默认
-     * @return array
-     */
-    public static function getLang($type=null){
-        if(!self::$_has_loaded){
-            return self::loadLang($type);
-        }
-        return self::$lang_cache;
+    public static function express($identifier){
+        self::$hasInited or self::init();
+        return isset(self::$lang_cache[$identifier])?self::$lang_cache[$identifier]:null;
     }
 
     /**
@@ -86,30 +68,15 @@ class Lang{
      * @throws CoraxException
      */
     public function loadLang($type=null){
-        isset($type) or $type = self::$default_lang;
-        if(!isset(self::$lang_cache[$type])){
-            //加载框架内置语言包
-            $innerpath = SYSTEM_PATH."Lang/{$type}.lang.php";
-            if(Storage::has($innerpath)){
-                $innerLang = include_once $innerpath;
-            }else{
-                throw new CoraxException($innerpath);
-            }
+        isset($type) or $type = self::$convention['DEFAULT_LANG'];//类型设置
 
-            //加载用户自定义语言包
-            $outerLang = array();
-            if(isset(self::$outer_path)){
-                $outerpath = self::$outer_path."{$type}.lang.php";
-                if(Storage::has($outerpath)){
-                    $outerLang = include_once $outerpath;
-                }else{
-                    throw new CoraxException($outerpath);
-                }
-            }
-            self::$_has_loaded = true;
-            return self::$lang_cache = array_merge(self::$lang_cache,$innerLang,$outerLang);
+        if(!isset(self::$lang_cache[$type])){
+            //文件不存在时会报错！
+            $innerLang = include_once SYSTEM_PATH."Lang/{$type}.php"; // 系统内置语言包
+            $outerLang = include_once BASE_PATH.self::$convention['LANG_OUTER_PATH']."{$type}.php"; // 用户自定义语言包，会覆盖系统的
+
+            return self::$lang_cache[$type] = array_merge(self::$lang_cache,$innerLang,$outerLang);// 后面覆盖前面的
         }
         return self::$lang_cache[$type];
-
     }
 }
