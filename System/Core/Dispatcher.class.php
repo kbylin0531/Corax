@@ -7,9 +7,7 @@
  */
 namespace System\Core;
 use System\Corax;
-use System\Exception\ClassNotFoundException;
 use System\Exception\CoraxException;
-use System\Exception\ParameterInvalidException;
 use System\Util\SEK;
 defined('BASE_PATH') or die('No Permission!');
 /**
@@ -18,15 +16,24 @@ defined('BASE_PATH') or die('No Permission!');
  * 根据URL解析的参数引导到对应的模块的控制器的操作下
  */
 class Dispatcher{
+    /**
+     * 惯例配置
+     * @var array
+     */
+    protected static $convention = [];
+    /**
+     * 表示本类是否已完成初始化
+     * @var bool
+     */
+    protected static $hasInited = false;
 
-    protected static $convention = array();
-
-    protected static $inited = false;
-
+    /**
+     * 初始化调度器
+     */
     public static function init(){
         //获取静态方法调用的类名称使用get_called_class,对象用get_class
-        SEK::merge(self::$convention,Configer::load('guide'),true);
-        static::$inited = true;
+        SEK::merge(self::$convention,Configer::load('dispatcher'),true);
+        static::$hasInited = true;
     }
 
     /**
@@ -35,15 +42,15 @@ class Dispatcher{
      * @param null|string $ctrler
      * @param null|string $action
      * @param null|array  $parameters
-     * @throws ClassNotFoundException
-     * @throws ParameterInvalidException 参数缺失时的设置
+     * @throws CoraxException
      * @throws \Exception
      */
     public static function execute($modules,$ctrler,$action,array $parameters=array()){
         Corax::status('execute_begin');
-        self::$inited or self::init();
+
+        self::$hasInited or self::init();
         if(!isset($modules,$ctrler,$action)){
-            throw new ParameterInvalidException($modules,$ctrler,$action,$parameters);
+            throw new CoraxException($modules,$ctrler,$action,$parameters);
         }
         //安全性检查
         if(is_array($modules)){
@@ -56,7 +63,7 @@ class Dispatcher{
             $modules = trim($temp,'\\');
         }else{
             if(!self::checkAllValid($modules)){
-                throw new ParameterInvalidException($modules);
+                throw new CoraxException($modules);
             }
         }
 

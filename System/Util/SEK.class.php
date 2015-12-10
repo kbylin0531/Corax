@@ -20,7 +20,7 @@ final class SEK {
      * 合并数组配置(参数二合并到参数一上)
      * @param array $dest 合并目标数组
      * @param array $sourse 并入目标的数组
-     * @param bool|false $cover 默认进行遍历覆盖
+     * @param bool|false $cover 默认进行遍历覆盖，设置成true有利于提高效率（直接使用PHP内置函数）
      * @return void
      */
     public static function merge(array &$dest,array $sourse,$cover=false){
