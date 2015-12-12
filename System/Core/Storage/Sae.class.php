@@ -7,7 +7,7 @@
  */
 namespace System\Core\Storage;
 
-class Sae implements StorageInterface {
+class Sae extends  StorageDriver {
 
     public function __construct(){
 

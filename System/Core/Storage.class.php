@@ -33,7 +33,7 @@ class Storage {
     /**
      * 存储类驱动实例
      * 云服务器环境下普通文件操作函数可能面临失效的情况
-     * @var Storage\StorageInterface
+     * @var Storage\StorageDriver
      */
     private static $driver = null;
 
@@ -45,23 +45,10 @@ class Storage {
     private function __construct(){}
 
     /**
-     * 文件名编码输入输出转写
-     * （PHP的中文编码是GB2312）
-     * PHP代码中文件名包括中文时需要设置参数二为true来转换成PHP可以识别的GB2312编码
-     * PHP读取本地文件输出到屏幕上时需要设置参数二位false来转换成UTF-8编码
-     * @param string $str 需要转换的文件名
-     * @param bool $to_system 是否转成系统支持的编码格式
-     * @return string 转换后的字符串
-     */
-    public static function transliteration(&$str,$to_system=true){
-        return $to_system ? iconv('UTF-8','GB2312//IGNORE',$str) : iconv('GB2312','UTF-8//IGNORE',$str);
-    }
-
-    /**
      * 根据存储模式初始化驱动类
      * @param string $mode
      */
-    public static function init($mode = null){
+    public static function init($mode=null){
         Corax::status('storage_init_begin');
         //获取运行环境
         if(null === $mode and RUNTIME_ENVIRONMENT === self::STORAGEMODE_SAE){
@@ -144,20 +131,20 @@ class Storage {
      * @param null $type
      * @return array|mixed
      */
-    public static function filemtime($filename,$type=null){
-        self::$hasInited or self::init();
-        return self::$driver->filemtime($filename,$type);
-    }
+//    public static function filemtime($filename,$type=null){
+//        self::$hasInited or self::init();
+//        return self::$driver->filemtime($filename,$type);
+//    }
 
     /**
      * 获取文件大小
      * @param string $filename 文件路径信息
      * @return mixed
      */
-    public static function filesize($filename){
-        self::$hasInited or self::init();
-        return self::$driver->filesize($filename);
-    }
+//    public static function filesize($filename){
+//        self::$hasInited or self::init();
+//        return self::$driver->filesize($filename);
+//    }
 
     /**
      * 删除文件夹

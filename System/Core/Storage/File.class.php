@@ -13,7 +13,20 @@ use System\Exception\CoraxException;
  * Class Common 文件系统驱动类基类
  * @package System\Core\Storage
  */
-class File implements StorageInterface{
+class File extends StorageDriver {
+    /**
+     * 文件名编码输入输出转写
+     * （PHP的中文编码是GB2312）
+     * PHP代码中文件名包括中文时需要设置参数二为true来转换成PHP可以识别的GB2312编码
+     * PHP读取本地文件输出到屏幕上时需要设置参数二位false来转换成UTF-8编码
+     * @param string $str 需要转换的文件名
+     * @param bool $to_system 是否转成系统支持的编码格式
+     * @return string 转换后的字符串
+     */
+    private function transliteration(&$str,$to_system=true){
+        return $to_system ? iconv('UTF-8','GB2312//IGNORE',$str) : iconv('GB2312','UTF-8//IGNORE',$str);
+    }
+
     /**
      * 获取文件内容
      * 注意：
@@ -25,7 +38,7 @@ class File implements StorageInterface{
      * @throws CoraxException
      */
     public function read($filepath,$file_encoding='UTF-8',$output_encode='UTF-8'){
-        $content = file_get_contents(Storage::transliteration($filepath));
+        $content = file_get_contents($this->transliteration($filepath));
         if(false === $content){
             throw new CoraxException($filepath);
         }elseif($file_encoding === $output_encode){
@@ -52,7 +65,7 @@ class File implements StorageInterface{
         if($write_encode !== 'UTF-8'){//非UTF-8时转换编码
             $content = iconv('UTF-8',$write_encode,$content);
         }
-        $rst = file_put_contents(Storage::transliteration($filepath),$content);
+        $rst = file_put_contents($this->transliteration($filepath),$content);
         if(false === $rst){
             throw new CoraxException($filepath,$content);
         }
@@ -72,7 +85,7 @@ class File implements StorageInterface{
         if(!$this->has($filepath)){
             return $this->write($filepath,$content,$write_encode);
         }
-        $temp = Storage::transliteration($filepath);
+        $temp = $this->transliteration($filepath);
         if(false === is_writable($temp)){
             throw new CoraxException($filepath);
         }
@@ -91,7 +104,7 @@ class File implements StorageInterface{
      * @return bool
      */
     public function has($filepath){
-        $filepath = Storage::transliteration($filepath);
+        $filepath = $this->transliteration($filepath);
         return file_exists($filepath);
     }
 
@@ -103,7 +116,7 @@ class File implements StorageInterface{
      * @return bool
      */
     public function touch($filename, $time = null, $atime = null){
-        $filename = Storage::transliteration($filename);
+        $filename = $this->transliteration($filename);
         return touch($filename, $time,$atime);
     }
 
@@ -113,7 +126,7 @@ class File implements StorageInterface{
      * @return bool
      */
     public function unlink($filepath){
-        $filepath = Storage::transliteration($filepath);
+        $filepath = $this->transliteration($filepath);
         return is_file($filepath)?unlink($filepath):rmdir($filepath);
     }
 
@@ -127,7 +140,7 @@ class File implements StorageInterface{
      */
     public function info($filepath,$type=null){
         if(self::has($filepath)){
-            $filepath = Storage::transliteration($filepath);
+            $filepath = $this->transliteration($filepath);
             return isset($type)?call_user_func($type,$filepath):array(
                 Storage::FILEINFO_LAST_ACCESS_TIME => call_user_func(Storage::FILEINFO_LAST_ACCESS_TIME,$filepath),
                 Storage::FILEINFO_LAST_MODIFIED_TIME => call_user_func(Storage::FILEINFO_LAST_MODIFIED_TIME,$filepath),
@@ -155,7 +168,7 @@ class File implements StorageInterface{
         static $_file = array();
         if($clear){
             $_file = array();
-            $path = Storage::transliteration($path);//不能多次转换，iconv函数不能自动识别自负编码
+            $path = $this->transliteration($path);//不能多次转换，iconv函数不能自动识别自负编码
         }
         if (is_dir($path)) {
             $handler = opendir($path);
@@ -163,8 +176,8 @@ class File implements StorageInterface{
                 if ($filename !== '.' && $filename !== '..' ) {//文件除去 .和..
                     $fullpath = $path . '/' . $filename;
                     if(is_file($fullpath)) {
-                        $filename = Storage::transliteration($filename,false);
-                        $fullpath = Storage::transliteration($fullpath,false);
+                        $filename = $this->transliteration($filename,false);
+                        $fullpath = $this->transliteration($fullpath,false);
                         $_file[$filename] = str_replace('\\','/',$fullpath);
                     }elseif(is_dir($fullpath)) {
                         $this->readFolder($fullpath,false);//递归,不清空
@@ -187,7 +200,7 @@ class File implements StorageInterface{
     public function removeFolder($dirpath,$recursion=false){
         if(!$this->has($dirpath)) return false;
         //扫描目录
-        $dh = opendir(Storage::transliteration($dirpath));
+        $dh = opendir($this->transliteration($dirpath));
         while ($file = readdir($dh)) {
             if($file !== '.' && $file !== '..') {
                 if(!$recursion) {//存在其他文件或者目录,非true时循环删除
@@ -196,7 +209,7 @@ class File implements StorageInterface{
                 }
                 $path = str_replace('\\','/',"{$dirpath}/{$file}");
 //                SEK::dump($path);exit;
-                if(false === (is_dir(Storage::transliteration($path))?$this->removeFolder($path,true):$this->unlink($path))){
+                if(false === (is_dir($this->transliteration($path))?$this->removeFolder($path,true):$this->unlink($path))){
                     return false;//***全等运算符优先级高于三目
                 }
             }
@@ -212,7 +225,7 @@ class File implements StorageInterface{
      * @return bool
      */
     public function makeFolder($dirpath,$auth = 0755){
-        $dirpath = Storage::transliteration($dirpath);
+        $dirpath = $this->transliteration($dirpath);
         if(is_dir($dirpath)){
             return chmod($dirpath,$auth);
         }else{
