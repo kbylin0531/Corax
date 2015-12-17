@@ -26,26 +26,26 @@ return [
             'type'  => 1,
             'menus'     => [
                 [
-                    'index'    => 31,
+                    'index'    => 3,
                     'name'  => 'Action',
                     'url'       => '#'
                 ],
                 [
-                    'index'    => 32,
+                    'index'    => 3,
                     'name'  => 'Another',
                     'url'       => '#'
                 ],
                 [
-                    'index'    => 33,
+                    'index'    => 3,
                     'name'  => 'Something',
                     'menus'     => [
                         [
-                            'index'    => '6',
+                            'index'    => 3,
                             'name'  => 'Look',
                             'url'       => '#'
                         ],
                         [
-                            'index'    => '7',
+                            'index'    => 3,
                             'name'  => 'Nice',
                             'url'       => '#'
                         ],
@@ -60,39 +60,27 @@ return [
             'type'  => 2,
             'menus'     => [
                 [
-                    'index'    => 41,
-                    'name'  => 'Users',
-                    'type'  => 1,
-                    'menus'     => [
-                        [
-                            'index'    => 411,
-                            'name'  => 'Look',
-                            'icon' => 'fa-group',
-                            'url'       => '#',
-                        ],
-                        [
-                            'index'    => 412,
-                            'name'  => 'Nice',
-                            'url'       => '#'
-                        ],
+                    [
+                        'index'     => 4,
+                        'name'      => 'Look',
+                        'url'       => '#',
+                    ],
+                    [
+                        'index'     => 4,
+                        'name'      => 'Nice',
+                        'url'       => '#'
                     ],
                 ],
                 [
-                    'index'    => 42,
-                    'name'  => 'Something',
-                    'type'  => 1,
-                    'menus'     => [
-                        [
-                            'index'    => 421,
-                            'name'  => 'Look',
-                            'icon' => 'fa-gear',
-                            'url'       => '#'
-                        ],
-                        [
-                            'index'    => 422,
-                            'name'  => 'Nice',
-                            'url'       => '#'
-                        ],
+                    [
+                        'index'     => 4,
+                        'name'      => 'Look',
+                        'icon'      => 'fa-gear', // 设置了图标之后无法使url生效
+                    ],
+                    [
+                        'index'     => 4,
+                        'name'      => 'Nice',
+                        'url'       => '#'
                     ],
                 ],
             ],
