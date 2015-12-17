@@ -9,44 +9,43 @@ return [
     'menus' => [
         //Home模块
         [
-            'id'    => 1,
+            'index'    => 1,
             'name'  => 'Home',
             'url'       => '#'
         ],
         //About单个菜单
         [
-            'id'    => 2,
+            'index'    => 2,
             'name'  => 'About',
             'url'       => '#'
         ],
         //复合菜单一
         [
-            'id'    => 3,
+            'index'    => 3,
             'name'  => 'Contact',
             'type'  => 1,
             'menus'     => [
                 [
-                    'id'    => 31,
+                    'index'    => 31,
                     'name'  => 'Action',
                     'url'       => '#'
                 ],
                 [
-                    'id'    => 32,
+                    'index'    => 32,
                     'name'  => 'Another',
                     'url'       => '#'
                 ],
                 [
-                    'id'    => 33,
+                    'index'    => 33,
                     'name'  => 'Something',
-                    'type'  => 1,
                     'menus'     => [
                         [
-                            'id'    => '6',
+                            'index'    => '6',
                             'name'  => 'Look',
                             'url'       => '#'
                         ],
                         [
-                            'id'    => '7',
+                            'index'    => '7',
                             'name'  => 'Nice',
                             'url'       => '#'
                         ],
@@ -56,41 +55,41 @@ return [
         ],
         //复合菜单二
         [
-            'id'    => 4,
-            'name'  => 'knowledge',
+            'index'    => 4,
+            'name'  => 'Knowledge',
             'type'  => 2,
             'menus'     => [
                 [
-                    'id'    => 41,
+                    'index'    => 41,
                     'name'  => 'Users',
                     'type'  => 1,
                     'menus'     => [
                         [
-                            'id'    => 411,
+                            'index'    => 411,
                             'name'  => 'Look',
                             'icon' => 'fa-group',
                             'url'       => '#',
                         ],
                         [
-                            'id'    => 412,
+                            'index'    => 412,
                             'name'  => 'Nice',
                             'url'       => '#'
                         ],
                     ],
                 ],
                 [
-                    'id'    => 42,
+                    'index'    => 42,
                     'name'  => 'Something',
                     'type'  => 1,
                     'menus'     => [
                         [
-                            'id'    => 421,
+                            'index'    => 421,
                             'name'  => 'Look',
                             'icon' => 'fa-gear',
                             'url'       => '#'
                         ],
                         [
-                            'id'    => 422,
+                            'index'    => 422,
                             'name'  => 'Nice',
                             'url'       => '#'
                         ],
