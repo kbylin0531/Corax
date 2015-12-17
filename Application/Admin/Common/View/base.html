@@ -42,7 +42,6 @@
         <link href="{$smarty.const.ADMIN_PATH}css/style.css" rel="stylesheet" />
     {/block}
 
-
 </head>
 <body>
 
@@ -61,50 +60,72 @@
 
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li><a href="#">Home</a></li>
-                <li class="active"><a href="#about">About</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contact <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="dropdown-submenu"><a href="#">Sub menu</a>
+                {* 遍历菜单配置项 *}
+                {foreach $topbar_menuconf['menus'] as $item}
+
+                    {if empty($item['menus'])}
+                        {* 输出激活与否的li前部 （简单的直接菜单） *}
+                        {if $active_index-- <= 0}
+                            <li>
+                        {else}
+                            <li class="active">
+                        {/if}
+                        <a href="{$item['url']}">{$item['menuname']}</a></li>
+                    {else}
+                        {* 输出激活与否的li前部 （复合菜单）*}
+                        {if $active_index-- <= 0}
+                            <li class="dropdown">
+                        {else}
+                            <li class="dropdown active">
+                        {/if}
+
+                        {if intval($item['menutype']) === 1}
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{$item['menuname']}<b class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a href="#">Action</a></li>
-                                <li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
+                                {* 遍历子菜单 *}
+                                {foreach $item['menus'] as $subitem}
+                                {if is_array($item)}
+                                    {* 遍历二级子菜单 *}
+                                    <li class="dropdown-submenu"><a href="#">Submenu</a>
+                                        <ul class="dropdown-menu">
+                                            {foreach $item['SUBMENU'] as $subsubname=>$subsubitem}
+                                            <li><a href="{$subsubitem}">{$subsubname}</a></li>
+                                            {/foreach}
+                                        </ul>
+                                    </li>
+                                {else}
+                                    {* 直接子菜单项 *}
+                                    <li><a href="{$subitem['url']}">{$subitem['menuname']}</a></li>
+                                    {/if}
+                                {/foreach}
                             </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Large menu <b class="caret"></b></a>
-                    <ul class="dropdown-menu col-menu-2">
-                        <li class="col-sm-6 no-padding">
-                            <ul>
-                                <li class="dropdown-header"><i class="fa fa-group"></i>Users</li>
-                                <li><a href="#">Action</a></li>
-                                <li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
-                                <li class="dropdown-header"><i class="fa fa-gear"></i>Config</li>
-                                <li><a href="#">Action</a></li>
-                                <li><a href="#">Another action</a></li>
-                                <li><a href="#">Something else here</a></li>
+                        {elseif $item['menutype'] === 2}
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Large menu <b class="caret"></b></a>
+                            <ul class="dropdown-menu col-menu-2">
+                                <li class="col-sm-6 no-padding">
+                                    <ul>
+                                        {foreach $item[0] as $subname=>$subitem}
+                                        {if is_array($subitem) && isset($subitem['class'])}
+                                        <li class="dropdown-header"><i class="fa {$subitem['class']}"></i><a href="{$subitem['href']}">{$subname}</a></li>
+                                        {else}
+                                        <li><a href="{$subitem}">{$subname}</a></li>
+                                        {/if}
+                                        {/foreach}
+                                    </ul>
+                                </li>
+                                <li  class="col-sm-6 no-padding">
+                                    <ul>
+                                        {foreach $item[1] as $subname=>$subitem}
+                                        {/foreach}
+                                    </ul>
+                                </li>
                             </ul>
+                        {else}
+                        {* 其他类型，不输出 *}
+                        {/if}
                         </li>
-                        <li  class="col-sm-6 no-padding">
-                            <ul>
-                                <li class="dropdown-header"><i class="fa fa-legal"></i>Sales</li>
-                                <li><a href="#">New sale</a></li>
-                                <li><a href="#">Register a product</a></li>
-                                <li><a href="#">Register a client</a></li>
-                                <li><a href="#">Month sales</a></li>
-                                <li><a href="#">Delivered orders</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
+                    {/if}
+                {/foreach}
             </ul>
             <ul class="nav navbar-nav navbar-right user-nav">
                 <li class="dropdown profile_menu">
@@ -199,7 +220,6 @@
     <script src="{$smarty.const.ADMIN_PATH}js/skycons/skycons.js"></script>
     <script src="{$smarty.const.ADMIN_PATH}js/bootstrap.slider/js/bootstrap-slider.js"></script>
     <script src="{$smarty.const.ADMIN_PATH}js/intro.js/intro.js"></script>
-
     <!-- Bootstrap core JavaScript
       ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -208,9 +228,7 @@
             //initialize the javascript
             App.init();
             App.dashBoard();
-
             introJs().setOption('showBullets', false).start();
-
         });
     </script>
     <script src="{$smarty.const.ADMIN_PATH}js/behaviour/voice-commands.js"></script>

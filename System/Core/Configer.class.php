@@ -68,7 +68,7 @@ class Configer{
             foreach(self::$convention['CONFIG_LIST'] as $dir=>$item){
                 if(!is_numeric($dir)){
                     foreach($item as $subitem){
-                        self::$config_cache[$item] = self::read(CONFIG_PATH."{$dir}/{$subitem}.php");
+                        self::$config_cache["{$dir}.{$subitem}"] = self::read(CONFIG_PATH."{$dir}/{$subitem}.php");
                     }
                 }else{
                     self::$config_cache[$item] = self::read(CONFIG_PATH."{$item}.php");

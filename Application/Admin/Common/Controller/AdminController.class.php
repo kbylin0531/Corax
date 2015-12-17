@@ -15,6 +15,7 @@ use System\Core\Controller;
  */
 class AdminController extends Controller{
 
+
     public function __construct(){
         parent::__construct();
         //模板中使用{$smarty.const.你定义的常量名}
@@ -31,7 +32,7 @@ class AdminController extends Controller{
      * @param int $active 激活的顺序
      */
     protected function setTopNavBar(array $barconf,$active=1){
-        $this->assign('topbar_menu_list',$barconf);
+        $this->assign('topbar_menuconf',$barconf);
         $this->assign('active_index',$active);
     }
 
