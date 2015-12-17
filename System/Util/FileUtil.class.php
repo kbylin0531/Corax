@@ -1,11 +1,13 @@
 <?php
 /**
- * Created by PhpStorm.
+ * Email:784855684@qq.com
  * User: Lin
  * Date: 2015/9/12
  * Time: 12:32
  */
 namespace System\Utils;
+use System\Exception\CoraxException;
+
 /**
  * Class FileUtil 文件操作工具
  * @package System\Utils
@@ -16,7 +18,7 @@ class FileUtil {
      * @param string $path 目录的路径
      * @param bool|true $clear 清空原来的记录
      * @return array 文件名和对应的路径
-     * @throws \Exception
+     * @throws CoraxException
      */
     public static function readDirFiles($path,$clear=true){
         static $_file = array();
@@ -34,7 +36,7 @@ class FileUtil {
             }
             closedir($handler);//关闭目录指针
         }else{
-            throw new \Exception("Path '{$path}' is not a dirent!");
+            throw new CoraxException("Path '{$path}' is not a dirent!");
         }
         return $_file;
     }
