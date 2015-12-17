@@ -14,6 +14,10 @@ return [
     //需要加载的配置文件数组
     'CONFIG_LIST'    => [
         'custom','database','dispatcher','hook','log','modules','route','security','template','cache','session','function','lang',
+        //子层菜单设置
+        'admin'=>[
+            'top_menubar'
+        ],
     ],
     'REFRESH_INTERVAL' => 10,//刷新间隔
     //缓存驱动

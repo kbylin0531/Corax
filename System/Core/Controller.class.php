@@ -8,6 +8,7 @@
 namespace System\Core;
 use System\Corax;
 use System\Util\SEK;
+use System\Util\UDK;
 
 defined('BASE_PATH') or die('No Permission!');
 /**
@@ -32,11 +33,11 @@ class Controller{
      * 当前控制器的默认上下文环境
      * @var array
      */
-    protected $context = array(
+    protected $context = [
         'm' => null,//当前访问的模块
         'c' => null,//当前访问的控制器名称
         't' => null,//默认的模板主题
-    );
+    ];
 
     /**
      * 模块目录
@@ -60,6 +61,7 @@ class Controller{
     public function __construct($context = null){
         $matches = null;
         //使用三个'\'才能转义'\' ?
+
         if(preg_match('/^Application\\\(.*)\\\Controller\\\(.*)Controller$/',get_called_class(),$matches)){
             $this->context['m'] = str_replace('\\','/',$matches[1]);
             $this->context['c'] = $matches[2];

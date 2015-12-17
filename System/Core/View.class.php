@@ -144,6 +144,7 @@ class View{
     public function display($template = null, $cache_id = null, $compile_id = null, $parent = null){
 //        Util::dump($template,$this->_context,TEMPLATE_ENGINE);exit;
         Corax::status('display_begin');
+
         $context = &self::$_context;
         if($template){
             $context = array_merge($context,self::parseTemplatePath($template));

@@ -166,7 +166,8 @@ final class Corax {
         }
 
         //-- 常用URL可以访问的路径 --//
-        define('URL_BASE_PATH', (SEK::isHTTPS() ? 'https://' :'http://').$_SERVER['HTTP_HOST'].dirname($_SERVER['SCRIPT_NAME']).'/');
+//        define('URL_BASE_PATH', (SEK::isHTTPS() ? 'https://' :'http://').$_SERVER['HTTP_HOST'].dirname($_SERVER['SCRIPT_NAME']).'/');
+        define('URL_BASE_PATH',dirname($_SERVER['SCRIPT_NAME']).'/');
         define('URL_PUBLIC_PATH',URL_BASE_PATH.'Public');
 
         self::status('init_begin');

@@ -65,8 +65,14 @@ class Configer{
         //要求强制刷新或者获取配置缓存为空时
         if($forceRefresh or (null === (self::$config_cache = Cache::get('configure',null,self::$convention['CACHE_DRIVER_TYPE']))) ){
             //配置未缓存
-            foreach(self::$convention['CONFIG_LIST'] as $item){
-                self::$config_cache[$item] = self::read(CONFIG_PATH."{$item}.php");
+            foreach(self::$convention['CONFIG_LIST'] as $dir=>$item){
+                if(!is_numeric($dir)){
+                    foreach($item as $subitem){
+                        self::$config_cache[$item] = self::read(CONFIG_PATH."{$dir}/{$subitem}.php");
+                    }
+                }else{
+                    self::$config_cache[$item] = self::read(CONFIG_PATH."{$item}.php");
+                }
             }
             //缓存
             Cache::set('configure',self::$config_cache,self::$convention['REFRESH_INTERVAL'],self::$convention['CACHE_DRIVER_TYPE']);
