@@ -4,7 +4,6 @@ var App = function () {
     tooltip: true,
     popover: true,
     nanoScroller: true,
-    nestableLists: true,
     hiddenElements: true,
     bootstrapSwitch:true,
     dateTime:true,
@@ -514,28 +513,7 @@ var App = function () {
   };
   /*END OF DASHBOARD*/
   
-  /*Nestable Lists*/
-  var nestable = function(){
-    $('.dd').nestable();
-    //Watch for list changes and show serialized output
-    function update_out(selector, sel2){
-      var out = $(selector).nestable('serialize');
-      $(sel2).html(window.JSON.stringify(out));
-    }
-    
-    update_out('#list1',"#out1");
-    update_out('#list2',"#out2");
-    
-    $('#list1').on('change', function() {
-      update_out('#list1',"#out1");
-    });
-    
-    $('#list2').on('change', function() {
-      update_out('#list2',"#out2");
-    });
-  };//End of Nestable Lists
-  
-  
+
   /*Form Wizard*/
   var wizard = function(){
     //Fuel UX
@@ -1517,11 +1495,7 @@ var App = function () {
         $(".nscroller").nanoScroller();     
       }
       
-      /*Nestable Lists*/
-      if(config.nestableLists){
-        $('.dd').nestable();
-      }
-      
+
       /*Switch*/
       if(config.bootstrapSwitch){
         $('.switch').bootstrapSwitch();
@@ -1578,10 +1552,7 @@ var App = function () {
       toggleSideBar();
     },
     
-    nestableLists: function(){
-      nestable();
-    },
- 
+
     wizard: function(){
       wizard();
     },

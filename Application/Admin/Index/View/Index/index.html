@@ -1,19 +1,12 @@
 {extends file='../../../Common/View/base.html'}
 
-{block name='css'}
-<link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/jquery.gritter/css/jquery.gritter.css"/>
-<link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/jquery.nanoscroller/nanoscroller.css"/>
-{/block}
+{block name='css'}{/block}
 
 {block name='stage'}{/block}
 
 {block name='js'}
-<script src="{$smarty.const.ADMIN_PATH}js/jquery.js"></script>
-<script src="{$smarty.const.ADMIN_PATH}js/jquery.gritter/js/jquery.gritter.js"></script>
-<script src="{$smarty.const.ADMIN_PATH}js/jquery.nanoscroller/jquery.nanoscroller.js"></script>
 <script src="{$smarty.const.ADMIN_PATH}js/behaviour/general.js"></script>
 <script src="{$smarty.const.ADMIN_PATH}js/jquery.ui/jquery-ui.js"></script>
-<script src="{$smarty.const.ADMIN_PATH}js/jquery.sparkline/jquery.sparkline.min.js"></script>
 <script>
     $(document).ready(function () {
         //initialize the javascript
@@ -21,5 +14,4 @@
         App.dashBoard();
     });
 </script>
-<script src="{$smarty.const.ADMIN_PATH}js/bootstrap/dist/js/bootstrap.min.js"></script>
 {/block}

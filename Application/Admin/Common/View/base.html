@@ -10,20 +10,26 @@
     <link rel="shortcut icon" href="{$smarty.const.URL_PUBLIC_PATH}/favicon.ico">
 
     {* 加载忙，可以注释 *}
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,400italic,700,800' rel='stylesheet'
-          type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700' rel='stylesheet' type='text/css'>
+    {*
+        <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,400italic,700,800' rel='stylesheet' type='text/css'>-->
+        <!--<link href='http://fonts.googleapis.com/css?family=Raleway:100' rel='stylesheet' type='text/css'>-->
+        <!--<link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,700' rel='stylesheet' type='text/css'>-->
+    *}
+    {* 代替使用国内的字体库  网址：http://libs.useso.com/ *}
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext' rel='stylesheet'>
+    <link href='http://fonts.useso.com/css?family=Open+Sans:300,400,600&subset=latin,latin-ext' rel='stylesheet'>
 
     <!-- Bootstrap core CSS -->
     {* bs核心样式 *}
     <link href="{$smarty.const.ADMIN_PATH}js/bootstrap/dist/css/bootstrap.css" rel="stylesheet"/>
     <link rel="stylesheet" href="{$smarty.const.ADMIN_PATH}fonts/font-awesome-4/css/font-awesome.min.css">
+    {* 自定义滚动条 样式 *}
+    <link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/jquery.nanoscroller/nanoscroller.css"/>
     {* bootstrap3 样式字体 *}
 
     {*
-    HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries
-    使用Javascript来使不支持HTML5的浏览器支持HTML标签
+        HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries
+        使用Javascript来使不支持HTML5的浏览器支持HTML标签
     *}
     <!--[if lt IE 9]>
     <script src="{$smarty.const.URL_PUBLIC_PATH}/js/html5shiv.js"></script>
@@ -270,6 +276,11 @@
         {* 舞台区域 *}
         {block name='stage'}{/block}
     </div>
+    {* jquery-1.8.2 *}
+    <script src="{$smarty.const.URL_PUBLIC_PATH}/js/jquery-1.8.2.min.js"></script>
+    {* 自定义滚动条 js *}
+    <script src="{$smarty.const.ADMIN_PATH}js/jquery.nanoscroller/jquery.nanoscroller.js"></script>
+    <script src="{$smarty.const.ADMIN_PATH}js/bootstrap/dist/js/bootstrap.min.js"></script>
     {block name='js'}{/block}
 </body>
 </html>
