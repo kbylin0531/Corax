@@ -8,7 +8,6 @@ var App = function () {
     hiddenElements: true,
     bootstrapSwitch:true,
     dateTime:true,
-    select2:true,
     tags:true
   };
   
@@ -16,9 +15,6 @@ var App = function () {
   
   /*DASHBOARD*/
   var dashboard = function(){
-    var skycons = new Skycons({"color": "#FFFFFF"});
-    skycons.add($("#sun-icon")[0], Skycons.PARTLY_CLOUDY_DAY);
-    skycons.play();
 
   
     /*Sparklines*/
@@ -1141,10 +1137,7 @@ var App = function () {
   
   /*Widgets*/
   var widgets = function(){
-    var skycons = new Skycons({"color": "#FFFFFF"});
-    skycons.add($("#sun-icon")[0], Skycons.PARTLY_CLOUDY_DAY);
-    skycons.play();
-    
+
   };//End of widgets
   
   
@@ -1539,16 +1532,9 @@ var App = function () {
         $(".datetime").datetimepicker({autoclose: true});
       }
       
-      /*Select2*/
-      if(config.select2){
-         $(".select2").select2({
-          width: '100%'
-         });
-      }
-      
+
        /*Tags*/
       if(config.tags){
-        $(".tags").select2({tags: 0,width: '100%'});
       }
       
 
