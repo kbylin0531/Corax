@@ -7,8 +7,6 @@
 <link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/bootstrap.switch/bootstrap-switch.css"/>
 <link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/bootstrap.datetimepicker/css/bootstrap-datetimepicker.min.css"/>
 <link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/jquery.select2/select2.css"/>
-<link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/bootstrap.slider/css/slider.css"/>
-<link rel="stylesheet" type="text/css" href="{$smarty.const.ADMIN_PATH}js/intro.js/introjs.css"/>
 {/block}
 
 {block name='stage'}{/block}
@@ -26,14 +24,11 @@
 <script src="{$smarty.const.ADMIN_PATH}js/bootstrap.datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
 <script src="{$smarty.const.ADMIN_PATH}js/jquery.select2/select2.min.js"></script>
 <script src="{$smarty.const.ADMIN_PATH}js/skycons/skycons.js"></script>
-<script src="{$smarty.const.ADMIN_PATH}js/bootstrap.slider/js/bootstrap-slider.js"></script>
-<script src="{$smarty.const.ADMIN_PATH}js/intro.js/intro.js"></script>
 <script>
     $(document).ready(function () {
         //initialize the javascript
         App.init();
         App.dashBoard();
-        introJs().setOption('showBullets', false).start();
     });
 </script>
 <script src="{$smarty.const.ADMIN_PATH}js/behaviour/voice-commands.js"></script>

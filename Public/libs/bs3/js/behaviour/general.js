@@ -9,9 +9,8 @@ var App = function () {
     bootstrapSwitch:true,
     dateTime:true,
     select2:true,
-    tags:true,
-    slider:true
-  }; 
+    tags:true
+  };
   
   var voice_methods = [];
   
@@ -546,11 +545,7 @@ var App = function () {
     //Fuel UX
     $('.wizard-ux').wizard();
 
-    $('.wizard-ux').on('changed',function(){
-      //delete $.fn.slider;
-      $('.bslider').slider();
-    });
-    
+
     $(".wizard-next").click(function(e){
       var id = $(this).data("wizard");
       $(id).wizard('next');
@@ -1556,11 +1551,7 @@ var App = function () {
         $(".tags").select2({tags: 0,width: '100%'});
       }
       
-       /*Slider*/
-      if(config.slider){
-        $('.bslider').slider();     
-      }
-      
+
       /*Input & Radio Buttons*/
       if(jQuery().iCheck){
         $('.icheck').iCheck({
