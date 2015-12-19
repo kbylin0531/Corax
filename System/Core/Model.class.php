@@ -91,7 +91,7 @@ class Model{
         }else{
             //默认设置的情况下
             if(!isset($this->real_tablename)){
-                $modelname = SEK::translateStringStyle($matches[2],false);
+                $modelname = SEK::toJavaStyle($matches[2]);
                 $this->setTableName($modelname);
             }
         }

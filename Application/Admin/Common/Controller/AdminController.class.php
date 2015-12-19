@@ -112,7 +112,7 @@ class AdminController extends Controller{
         ],$tai);
         $this->assignUserInfo([
             'nickname'  =>  'Linzhv',
-            'avatar'    =>  ADMIN_PATH.'images/avatar2.jpg',
+            'avatar'    =>  URL_PUBLIC_PATH.'/images/avatar2.jpg',
             'user_menu' => [
                 [
                     'Account'   => '#',
@@ -125,6 +125,47 @@ class AdminController extends Controller{
             ],
         ]);
 
+        $this->assignSideBar([
+            'menus' => [
+                [
+                    'icon'  => 'icon-home',
+                    'name'  => 'Member Group',
+                    'submenus'  => [
+                        [
+                            //末端需要进行index编号
+                            'index' => 1,
+                            'name'  => 'name1',
+                            'url'   => '#',
+                            'meta'   => 'New',
+                        ],
+                        [
+                            'index' => 2,
+                            'name'  => 'name2',
+                            'url'   => '#',
+                            'meta'   => '',
+                        ],
+                    ],
+                ],
+                [
+                    'icon'  => 'icon-smile',
+                    'name'  => 'Elements',
+                    'submenus'  => [
+                        [
+                            'index' => 3,
+                            'name'  => 'name1',
+                            'url'   => '#',
+                            'meta'   => 'New',
+                        ],
+                        [
+                            'index' => 4,
+                            'name'  => 'name2',
+                            'url'   => '#',
+                            'meta'   => '',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**

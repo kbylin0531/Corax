@@ -36,7 +36,7 @@ CREATE TABLE `co_auth_group` (
   `wechat_group_count` int(10) DEFAULT NULL COMMENT '微信端用户数',
   `is_del` tinyint(1) DEFAULT '0' COMMENT '是否已删除',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=INNODB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of co_auth_group

@@ -14,4 +14,7 @@ use Application\Admin\Common\Controller\AdminController;
  */
 class AuthController extends AdminController {
 
+    public function index(){
+        $this->display();
+    }
 }
