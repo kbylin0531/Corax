@@ -91,7 +91,7 @@ class AdminController extends Controller{
                             [
                                 'index'     => 4,
                                 'name'      => 'Look',
-                                'icon'      => 'fa-gear', // 设置了图标之后无法使url生效
+                                'icon'      => 'icon-gear', // 设置了图标之后无法使url生效
                             ],
                             [
                                 'index'     => 4,
@@ -124,7 +124,7 @@ class AdminController extends Controller{
         $this->assignSideBar([
             'menus' => [
                 [
-                    'icon'  => 'fa-home',
+                    'icon'  => 'icon-home',
                     'name'  => 'Hello',
                     'submenus'  => [
                         [
@@ -142,7 +142,7 @@ class AdminController extends Controller{
                     ],
                 ],
                 [
-                    'icon'  => 'fa-smile-o',
+                    'icon'  => 'icon-smile-o',
                     'name'  => 'Elements',
                     'submenus'  => [
                         [
@@ -169,7 +169,7 @@ class AdminController extends Controller{
      */
     protected function assignTopNavBar(array $barconf,$active=1){
         $this->assign('topbar_menuconf',$barconf);
-        $this->assign('active_index',$active);
+        $this->assign('topbar_active_index',$active);
     }
 
     /**
@@ -195,7 +195,7 @@ class AdminController extends Controller{
      */
     protected function assignSideBar(array $config,$active_index=1){
         $this->assign('sidebar_config',$config);
-        $this->assign('active_index',$active_index);
+        $this->assign('sidebar_active_index',$active_index);
     }
 
 
