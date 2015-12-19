@@ -7,8 +7,6 @@
 // | Author: 朱亚杰 <zhuyajie@topthink.net>
 // +----------------------------------------------------------------------
 namespace Admin\Controller;
-
-use Admin\Model\AuthRuleModel;
 use Admin\Model\AuthGroupModel;
 
 /**

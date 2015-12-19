@@ -363,7 +363,7 @@ class AdminController extends Controller {
      *  可以通过url空值排序字段和方式,例如: index.html?_field=id&_order=asc
      *  可以通过url参数r指定每页数据条数,例如: index.html?r=5
      *
-     * @param sting|Model  $model   模型名或模型实例
+     * @param string|object $model   模型名或模型实例
      * @param array        $where   where查询条件(优先级: $where>$_REQUEST>模型设定)
      * @param array|string $order   排序条件,传入null时使用sql默认排序或模型属性(优先级最高);
      *                              请求参数中如果指定了_order和_field则据此排序(优先级第二);

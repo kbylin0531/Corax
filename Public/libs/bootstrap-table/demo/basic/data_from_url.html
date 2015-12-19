@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Basic</title>
+    <link rel="stylesheet" href="../../dist/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../dist/bootstrap-table.css">
+</head>
+<body>
+<h1>Transform table from an url.<br />
+
+Please confirm the special url return the data of json!
+</h1>
+
+<table data-toggle="table"
+       data-url="/gh/get/response.json/wenzhixin/bootstrap-table/tree/master/docs/data/data1/?order=asc">
+    <thead>
+    <tr>
+        <th data-field="name">Name</th>
+        <th data-field="stargazers_count">Stars</th>
+        <th data-field="forks_count">Forks</th>
+        <th data-field="description">Description</th>
+    </tr>
+    </thead>
+</table>
+
+<script src="../../dist/jquery.min.js"></script>
+<script src="../../dist/bootstrap/js/bootstrap.min.js"></script>
+<script src="../../dist/bootstrap-table.min.js"></script>
+<script src="../../dist/locale/bootstrap-table-zh-CN.js"></script>
+</body>
+</html>

@@ -274,7 +274,7 @@ class AuthGroupModel extends Model {
 
     /**
      * 检查id是否全部存在
-     * @param array|string $gid  用户组id列表
+     * @param array|string $mid  用户组id列表
      * @author 朱亚杰 <zhuyajie@topthink.net>
      */
     public function checkId($modelname,$mid,$msg = '以下id不存在:'){
