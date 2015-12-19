@@ -38,15 +38,9 @@
     <title>{block name='title'}Corax Admin{/block}</title>
 
     <!-- Custom styles for this template -->
-    <link href="{$smarty.const.ADMIN_PATH}css/style.css" rel="stylesheet"/>
+    <link href="{$smarty.const.URL_PUBLIC_PATH}/css/corax.css" rel="stylesheet"/>
     {block name='css'}{/block}
 
-    <style>
-        body {
-            opacity:1;
-            margin-left:0;
-        }
-    </style>
 </head>
 <body>
     {* 顶部导航栏 *}
@@ -68,7 +62,7 @@
                     {foreach $topbar_menuconf['menus'] as $item}
                     {if empty($item['menus'])}
                     {* 输出激活与否的li前部 （简单的直接菜单） *}
-                    {if $active_index === $item['index']}
+                    {if $topbar_active_index === $item['index']}
                     <li class="active">
                         {else}
                     <li>
@@ -76,7 +70,7 @@
                         <a href="{$item['url']}">{$item['name']}</a></li>
                     {else}
                     {* 输出激活与否的li前部 （复合菜单）*}
-                    {if $active_index === $item['index']}
+                    {if $topbar_active_index === $item['index']}
                     <li class="dropdown active">
                         {else}
                     <li class="dropdown">
@@ -215,7 +209,7 @@
                                 <li><a href="javascript:void(0);"><i class="icon {$item['icon']}"></i><span>{$item['name']}</span></a>
                                     <ul class="sub-menu">
                                         {foreach $item['submenus'] as $subitem}
-                                            {if intval($active_index) === intval($subitem['index'])} <li class="active"> {else} <li> {/if}
+                                            {if intval($sidebar_active_index) === intval($subitem['index'])} <li class="active"> {else} <li> {/if}
                                             <a href="{$subitem['url']}">
                                             {if false === empty($subitem['meta'])} <span class="label label-primary pull-right">{$subitem['meta']}</span> {/if}
                                             {$subitem['name']}

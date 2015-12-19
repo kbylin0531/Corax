@@ -218,6 +218,9 @@ final class Corax {
         self::loadFunctions();
         //解析URL
         self::$_url_components = Router::analyse();
+
+
+//        UDK::dumpout(self::$_url_components);
         //执行结果
         Dispatcher::execute(
             self::$_url_components['m'], self::$_url_components['c'],

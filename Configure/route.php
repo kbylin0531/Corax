@@ -61,7 +61,7 @@ return [
     //使用的协议名称
     'HOST_PROTOCOL' => 'http',
     //使用的端口号，默认为80时会显示为隐藏
-    'HOST_PORT' => 8088,
+    'HOST_PORT' => 8056,
     //是否将子域名和模块进行对应
     'SUB_DOMAIN_MODULE_MAPPING_ON'  => false,
     //子域名部署规则

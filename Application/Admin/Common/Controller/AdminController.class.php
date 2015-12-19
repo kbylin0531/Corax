@@ -8,6 +8,9 @@
 namespace Application\Admin\Common\Controller;
 use System\Core\Configer;
 use System\Core\Controller;
+use System\Core\Router;
+use System\Util\SEK;
+use System\Util\UDK;
 
 /**
  * Class AdminController 后台控制器基类
@@ -21,18 +24,22 @@ class AdminController extends Controller{
         //模板中使用{$smarty.const.你定义的常量名}
         defined('ADMIN_PATH') or define('ADMIN_PATH',URL_PUBLIC_PATH.'/libs/bs3/');
 
+
+        //topbar active index
+        $tai = isset($_REQUEST['_tai'])?intval($_REQUEST['_tai']):1;
+
         $this->assignTopNavBar([
             'menus' => [
                 //Home模块
                 [
-                    'index'    => 1,
-                    'name'  => 'Home',
-                    'url'       => '#'
+                    'index'     => 1,
+                    'name'      => 'User',
+                    'url'       => $this->buildUrl('admin/member/management/index',1,1),
                 ],
                 //About单个菜单
                 [
-                    'index'    => 2,
-                    'name'  => 'About',
+                    'index'     => 2,
+                    'name'      => 'System',
                     'url'       => '#'
                 ],
                 //复合菜单一
@@ -102,7 +109,7 @@ class AdminController extends Controller{
                     ],
                 ],
             ],
-        ]);
+        ],$tai);
         $this->assignUserInfo([
             'nickname'  =>  'Linzhv',
             'avatar'    =>  ADMIN_PATH.'images/avatar2.jpg',
@@ -117,50 +124,18 @@ class AdminController extends Controller{
                 ],
             ],
         ]);
-        $this->assignMessages([
 
-        ]);
+    }
 
-        $this->assignSideBar([
-            'menus' => [
-                [
-                    'icon'  => 'icon-home',
-                    'name'  => 'Hello',
-                    'submenus'  => [
-                        [
-                            'index' => 1,
-                            'name'  => 'name1',
-                            'url'   => '#',
-                            'meta'   => 'New',
-                        ],
-                        [
-                            'index' => 2,
-                            'name'  => 'name2',
-                            'url'   => '#',
-                            'meta'   => '',
-                        ],
-                    ],
-                ],
-                [
-                    'icon'  => 'icon-smile-o',
-                    'name'  => 'Elements',
-                    'submenus'  => [
-                        [
-                            'index' => 3,
-                            'name'  => 'name1',
-                            'url'   => '#',
-                            'meta'   => 'New',
-                        ],
-                        [
-                            'index' => 4,
-                            'name'  => 'name2',
-                            'url'   => '#',
-                            'meta'   => '',
-                        ],
-                    ],
-                ],
-            ],
-        ]);
+    /**
+     * 建立URL
+     * @param string $url url
+     * @param int $tai current topbar index
+     * @param int $sai default sidebar index
+     * @return string
+     */
+    private function buildUrl($url,$tai,$sai){
+        return SEK::url($url,['_tai'=>$tai,'_sai'=>$sai]);
     }
 
     /**
@@ -193,7 +168,8 @@ class AdminController extends Controller{
      * @param array $config
      * @param int $active_index
      */
-    protected function assignSideBar(array $config,$active_index=1){
+    protected function assignSideBar(array $config,$active_index=null){
+        isset($active_index) or $active_index = isset($_REQUEST['_sai'])?intval($_REQUEST['_sai']):1;
         $this->assign('sidebar_config',$config);
         $this->assign('sidebar_active_index',$active_index);
     }
