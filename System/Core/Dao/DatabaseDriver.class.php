@@ -75,13 +75,6 @@ abstract class DatabaseDriver extends \PDO{
     abstract public function buildSqlByComponent($tablename,$componets=[],$offset,$limit);
 
     /**
-     * 获取数据表
-     * @param string $namelike
-     * @param string $dbname 数据库名称
-     * @return array
-     */
-    abstract public function getTables($namelike = '%',$dbname=null);
-    /**
      * 取得数据表的字段信息
      * @access public
      * @param $tableName
@@ -94,15 +87,6 @@ abstract class DatabaseDriver extends \PDO{
      * @return string
      */
     abstract public function escapeField($fieldname);
-    /**
-     * 根据SQL的各个组成部分创建SQL查询语句
-     * @param string $tablename 数据表的名称
-     * @param array $components sql组成部分
-     * @param int $offset
-     * @param int $limit
-     * @return string
-     */
-    abstract public function buildSql($tablename,array $components,$offset=NULL,$limit=NULL);
 
     /**
      * 调用不存在的方法时

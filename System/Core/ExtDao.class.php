@@ -6,24 +6,22 @@
  * Time: 21:13
  */
 namespace System\Core;
-use System\Exception\ParameterInvalidException;
+use System\Exception\CoraxException;
 
 /**
  * Class ExtDao 方法扩展的Dao
  * @package System\Core
  */
 class ExtDao extends Dao {
+
     /**
-     * Ϊָ�������ݱ����һ������
+     * 添加数据
      * <code>
      *      $fldsMap ==> array(
-     *          //-- ��һ��������������ת�� --//
      *          'fieldName' => 'fieldValue',
-     *          //-- �ڶ������,[ֵ���Ƿ�ת��] --//
-     *          'fieldName' => array('fieldValue',boolean),
+     *          'fieldName' => array('fieldValue',boolean),//第二个元素表示是否对字段名称进行转义
      *      );
      *
-     *     #ţ���뵽��һ���취(MySQL)
      *     $data = ['a'=>'foo','b'=>'bar'];
      *     $keys = array_keys($data);
      *     $fields = '`'.implode('`, `',$keys).'`';
@@ -31,80 +29,83 @@ class ExtDao extends Dao {
      *     $placeholder = substr(str_repeat('?,',count($keys),0,-1));
      *     $pdo->prepare("INSERT INTO `baz`($fields) VALUES($placeholder)")->execute(array_values($data));
      * </code>
+     *
+     * 插入数据的sql可以是：
+     * ①INSERT INTO 表名称 VALUES (值1, 值2,....)
+     * ②INSERT INTO table_name (列1, 列2,...) VALUES (值1, 值2,....)
+     *
      * @param string $tablename
      * @param array $fieldsMap
-     * @return string|int
-     * @throws ParameterInvalidException
+     * @return bool 返回true或者false
+     * @throws CoraxException
      */
     public function create($tablename,$fieldsMap){
-        $fields    = '';
-        $placeholder     = '';
-        $bind  = array();
-        if($fieldsMap){
-            $flag_n = true;
-            $flag = true;
-            foreach($fieldsMap as $fieldName=>$fieldValue){
-                $fieldName = trim($fieldName,' :');
-                $colnm = $fieldName;
-                if($flag_n){
-                    if(is_numeric($fieldName)){
-                        $colnm = $fieldName = 'fields_'.$fieldName;////����array('1', '[NAME]', '[PASS]', '[EMAIL]', '', '[TIME]', '[IP]', 0, 0, '[TIME]', '1')�����
-                        $flag = false;
-                    }
-                    $flag_n = false;
-                }
-                if(is_array($fieldValue)){
-                    $colnm = $fieldValue[1]?$this->driver->escapeField($fieldName):$fieldName;
-                    $fieldValue = $fieldValue[0];
-                }
-                if($flag){//�ַ�
-                    //ƴ�Ӳ���SQL�ַ���
-                    $fields .= " {$colnm} ,";
-                    $placeholder  .= " :{$fieldName} ,";
-                    $bind[":{$fieldName}"] = $fieldValue;
-                }else{
-                    $placeholder .= ' ?,';
-                    $bind[] = $fieldValue;
-                }
-            }
-            $flag and ($fields = rtrim($fields,','));
-            $placeholder  = rtrim($placeholder,',');
+        $fields = $placeholder = '';
+        $sql = null;
+        $bind  = [];
+        $flag = true;//标记是否进行插入形式判断
+
+        foreach($fieldsMap as $fieldName=>$fieldValue){
+            $colnm = $fieldName;
             if($flag){
-                return $this->prepare("INSERT INTO {$tablename} ( {$fields} ) VALUES ( {$placeholder} );")->execute($bind);
-            }else{
-                return $this->prepare("INSERT INTO {$tablename} VALUES ( {$placeholder} );")->execute($bind);
+                if(is_numeric($fieldName)){
+                    $placeholder  = rtrim(str_repeat(' ?,',count($fieldsMap)),',');
+                    $sql = "INSERT INTO {$tablename} VALUES ( {$placeholder} );";
+                    $bind = $fieldsMap;
+                    break;
+                }
+                $flag = false;
             }
-        }else{
-            throw new ParameterInvalidException($fieldsMap);
+            if(is_array($fieldValue)){ //不设置字段名称进行插入时$fieldName无意义
+                $colnm = $fieldValue[1]?$this->driver->escapeField($fieldName):$fieldName;
+                $fieldValue = $fieldValue[0];
+            }
+            $fields .= " {$colnm} ,";
+            $placeholder  .= " :{$fieldName} ,";
+            $bind[":{$fieldName}"] = $fieldValue;
         }
+
+        if(isset($sql)){
+            $fields = rtrim($fields,',');
+            $sql = "INSERT INTO {$tablename} ( {$fields} ) VALUES ( {$placeholder} );";
+        }
+        return $this->prepare($sql)->execute($bind);
     }
 
     /**
-     * Ϊָ�������ݱ���¼�¼
+     * 更新数据表
      * @param string $tablename
      * @param string|array $flds
      * @param string|array $whr
-     * @return int|string ������Ӱ�������
+     * @return bool
+     * @throws CoraxException
      */
-    public function update($tablename,$flds,$whr){
-        $fields = is_string($flds)?array($flds,array()):$this->makeSegments($flds,false);
-        $where  = is_string($whr) ?array($whr,array()) :$this->makeSegments($whr, false);
-        $input_params = (empty($fields[1]) && empty($where[1]))?null:array_merge($fields[1],$where[1]);
-        $this->prepare("update {$tablename} set {$fields[0]} where {$where[0]};")->execute($input_params);
-        return $this->doneExecute();
+    public function update($tablename,$flds,$whr){;
+        $input_params = [];
+        $fields = is_string($flds)?[$flds,[]]:$this->makeSegments($flds,false);
+        $where  = is_string($whr) ?[$whr,[]] :$this->makeSegments($whr, false);
+        empty($fields[1]) or $input_params = $fields[1];
+        empty($where[1]) or array_merge($input_params,$where[1]);
+        return $this->prepare("UPDATE {$tablename} SET {$fields[0]} WHERE {$where[0]};")->execute($input_params);
     }
 
     /**
-     * ɾ������
-     * @param $tablename
-     * @param $whr
-     * @return int|string
+     * 执行删除数据的操作
+     * 如果不设置参数，则进行清空表的操作
+     * @param string $tablename 数据表的名称
+     * @param array $whr 字段映射数组
+     * @return bool
      */
-    public function delete($tablename,$whr){
-        $where  = $this->makeSegments($whr);
-        $this->prepare("delete from {$tablename} where {$where[0]};")
-            ->execute($where[1]);
-        return $this->doneExecute();
+    public function delete($tablename,$whr=null){
+        $bind = null;
+        if(isset($whr)){
+            $where  = $this->makeSegments($whr);
+            $sql    = "delete from {$tablename} where {$where[0]};";
+            $bind   = $where[1];
+        }else{
+            $sql = "delete from {$tablename};";
+        }
+        return $this->prepare($sql)->execute($bind);
     }
 
     /**
@@ -113,33 +114,49 @@ class ExtDao extends Dao {
      * @param string|array|null $fields
      * @param string|array|null $whr
      * @return array|bool
+     * @throws CoraxException
      */
     public function select($tablename,$fields=null,$whr=null){
-        if($fields and is_array($fields)){
-            $fields = implode(',',$fields);
-        }else{
+        $bind = null;
+
+        //设置选取字段
+        if(null === $fields){
             $fields = ' * ';
+        }elseif($fields and is_array($fields)){
+            //默认转义
+            array_map(function($param){
+                return $this->driver->escapeField($param);
+            },$fields);
+            $fields = implode(',',$fields);
+        }elseif(!is_string($fields)){
+            throw new CoraxException('Parameter 2 require the type of "null","array","string" ,now is invalid!');
         }
-        $whr  = is_string($whr)?array($whr,null):$this->makeSegments($whr);
-        $rst = $this->prepare("select $fields from $tablename where {$whr[0]};")->execute($whr[1]);
-        if(false === $rst ){
+
+        if(null === $whr){
+            $sql = "select {$fields} from {$tablename};";
+        }elseif(is_array($whr)){
+            $whr  = is_string($whr)? [$whr,null] :$this->makeSegments($whr);
+            $sql = "select {$fields} from {$tablename} where {$whr[0]};";
+            $bind = $whr[1];
+        }elseif(is_string($whr)){
+            $sql = "select {$fields} from {$tablename} where {$whr};";
+        }else{
+            throw new CoraxException('Parameter 3 require the type of "null","array","string" ,now is invalid!');
+        }
+
+
+        if(false === $this->prepare($sql)->execute($bind) ){
             return false;
         }
         return $this->fetchAll();
     }
 
 
-    /**
-     * @param string $namelike
-     * @param string $dbname
-     * @return array
-     */
-    public function getTables($namelike = '%',$dbname=null){
-        return $this->driver->getTables($namelike,$dbname);
-    }
+
+
 
     /**
-     * �ۺ��ֶΰ󶨵ķ���
+     * 综合字段绑定的方法
      * <code>
      *      $operator = '='
      *          $fieldName = :$fieldName
@@ -152,144 +169,145 @@ class ExtDao extends Dao {
      *      $operator = 'in|not_in'
      *          $fieldName in|not_in array(...explode(...,$fieldValue)...)
      * </code>
-     * @param string $fieldName �ֶ�����
-     * @param string|array $fieldValue �ֶ�ֵ
-     * @param string $operator ������
-     * @param bool $translate �Ƿ���ֶ����ƽ���ת��,MSSQL��ʹ��[]
+     * @param string $fieldName 字段名称
+     * @param string|array $fieldValue 字段值
+     * @param string $operator 操作符
+     * @param bool $translate 是否对字段名称进行转义,MSSQL中使用[]
      * @return array
-     * @throws ParameterInvalidException
+     * @throws CoraxException
      */
     protected function makeFieldBind($fieldName,$fieldValue,$operator='=',$translate=false){
-        static $suffix = 1;//ʹ�ó�����updateʱ����set������where��ʱ������ǰ����ߣ���suffix���ÿ��Է�ֹǰ���ͻ
-        //������
-        $fieldName = trim($fieldName, ' :');
-        $fieldBindName = null;
-        if (false !== strpos($fieldName, '.')) {//������ѡ�����һ�� ot_students.id  ==> id
-            $arr = explode('.', $fieldName);
-            $fieldBindName = ':' . array_pop($arr);
-        } elseif (mb_strlen($fieldName, 'utf-8') < strlen($fieldName)) {//�ֶ�����Ϊ�����ı���
-            $fieldBindName = ':' . md5($fieldName);
-        } else {
-            $fieldBindName = ":{$fieldName}";
+        $fieldName = trim($fieldName,' :[]');
+        $bindFieldName = null;
+        if(false !== strpos($fieldName,'.')){
+            $arr = explode('.',$fieldName);
+            $bindFieldName = ':'.array_pop($arr);
+        }elseif(mb_strlen($fieldName,'utf-8') < strlen($fieldName)){//其他编码
+            $bindFieldName = ':'.md5($fieldName);
+        }else{
+            $bindFieldName = ":{$fieldName}";
         }
-        $fieldBindName .= $suffix;//��׺�ν�
-        //����������
+
         $operator = strtolower(trim($operator));
-        $sql = $translate ? $this->driver->escapeField($fieldName) : $fieldName ;
+        $sql = $translate?" [{$fieldName}] ":" {$fieldName} ";
         $bind = array();
 
-        switch ($operator) {
+        switch($operator){
             case '=':
-                $sql .= " = {$fieldBindName} ";
-                $bind[$fieldBindName] = $fieldValue;
+                $sql .= " = {$bindFieldName} ";
+                $bind[$bindFieldName] = $fieldValue;
                 break;
             case 'like':
-                $sql .= " like {$fieldBindName} ";
-                $bind[$fieldBindName] = $fieldValue;
+                $sql .= " like {$bindFieldName} ";
+                $bind[$bindFieldName] = $fieldValue;
                 break;
             case 'in':
             case 'not in':
-                if (is_string($fieldValue)) {
+                if(is_string($fieldValue)){
                     $sql .= " {$operator} ({$fieldValue}) ";
-                } elseif (is_array($fieldValue)) {
-                    $sql .= " {$operator} ('" . implode("','", $fieldValue) . "')";
-                } else {
-                    throw new ParameterInvalidException($fieldName);
+                }elseif(is_array($fieldValue)){
+                    $sql .= " {$operator} ('".implode("','",$fieldValue)."')";
+                }else{
+                    throw new CoraxException("The parameter 1 '{$fieldValue}' is invalid!");
                 }
                 break;
             default:
-                throw new ParameterInvalidException($fieldValue);
+                throw new CoraxException("The parameter 2 '{$operator}' is invalid!");
         }
-        ++$suffix;
-        return array(
-            $sql,
-            $bind,
-        );
+        return [$sql,$bind];
     }
 
     /**
+     * 片段设置
      * <note>
-     *      Ƭ��׼��
+     *      片段准则
      *      $map == array(
-     *          //-- ��һ�����,���ӷ���һ����'='�������ֶ����Ʋ��Ǳ����� --//
+     *           //第一种情况,连接符号一定是'='//
      *          'key' => $val,
-     *          //-- �ڶ��������[��ֵ���Ƿ�ת�壬������] --//
-     *          'key' => array($val,true,$operator),//����ֵ�������,�������⣬����������Ӧ�õ���
-     *          //-- �����������[������SQLƬ�Σ������ƣ���ֵ] --//
-     *          array('assignSql',':bindSQLSegment',value),//����4��ֵΪtrueʱ��ʾ��key����[]ת��
+     *          'key' => array($val,$operator,true),
+     *          //第二种情况，数组键，数组值//
+     *          array('key','val','like|=',true),//参数4的值为true时表示对key进行[]转义
+     *          //第三种情况，字符键，数组值//
+     *          'assignSql' => array(':bindSQLSegment',value)//与第一种情况第二子目相区分的是参数一以':' 开头
      *      );
      * </note>
-     * @param array $segments �ֶΰ�Ƭ��
-     * @param bool $is_and ��ʾ�Ƿ�ʹ��and��Ϊ���ӷ���falseʱΪ,
+     * @param $map
+     * @param bool $and 表示是否使用and作为连接符，false时为,
      * @return array
      */
-    public function makeSegments($segments,$is_and=true){
-        //��ʼֵ��������
+    protected function makeSegments($map,$and=true){
+        //初始值与参数检测
         $bind = array();
         $sql = '';
-        if(empty($segments)){
+        if(empty($map)){
             return array($sql,$bind);
         }
-        //Ƭ��֮�������
-        $bridge = $is_and?'and':',';
+        $connect = $and?'and':',';
 
-        //Ԫ������
-        foreach($segments as $key=>$val){
-            if(is_numeric($key)){//���������
-                $sql .= " {$val[0]} $bridge";
-                $bind[$val[1]] = $val[2];
-            }else{
-                $rst = null;
-                if(is_array($val)){//�ڶ������
-                    $rst = $this->makeFieldBind(
-                        $val[0],
-                        $val[1],
-                        empty($val[2])?' = ':$val[2],
-                        $val[3]
-                    );
-                }else{//��һ�����
-                    $rst = $this->makeFieldBind($key,$val);
-                }
-                //�ϲ��󶨲���
+
+        //元素连接
+        foreach($map as $key=>$val){
+            if(is_numeric($key)){
+                //第二种情况
+                $rst = $this->makeFieldBind(
+                    $val[0],
+                    $val[1],
+                    isset($val[2])?$val[2]:' = ',
+                    !empty($val[3])
+                );
                 if(is_array($rst)){
-                    $sql .= " {$rst[0]} $bridge";
+                    $sql .= " {$rst[0]} $connect";
+                    $bind = array_merge($bind, $rst[1]);
+                }
+            }elseif(is_array($val) and strpos($val[0],':') === 0){
+                //第三种情况,复杂类型，由用户自定义
+                $sql .= " {$key} $connect";
+                $bind[$val[0]] = $val[1];
+            }else{
+                //第一种情况
+                $translate = false;
+                $operator = '=';
+                if(is_array($val)){
+                    $translate = isset($val[2])?$val[2]:false;
+                    $operator = isset($val[1])?$val[1]:'=';
+                    $val = $val[0];
+                }
+                $rst = $this->makeFieldBind($key,trim($val),$operator,$translate);//第一种情况一定是'='的情况
+                if(is_array($rst)){
+                    $sql .= " {$rst[0]} $connect";
                     $bind = array_merge($bind, $rst[1]);
                 }
             }
         }
-        return array(
-            substr($sql,0,strlen($sql)-strlen($bridge)),//ȥ�����һ��and
+        $result = array(
+            substr($sql,0,strlen($sql)-strlen($connect)),//去除最后一个and
             $bind,
         );
+        return $result;
     }
+
+
     /**
-     * ����SQL�ĸ�����ɲ��ִ���SQL��ѯ���
-     * @param string $tablename ���ݱ������
-     * @param array $components sql��ɲ���
-     * @param int $offset
-     * @param int $limit
+     * 根据条件获得查询的SQL，SQL执行的正确与否需要实际查询才能得到验证
+     * @param string $tablename 查找的表名称,不需要带上from部分
+     * @param array $components  复杂SQL的组成部分
+     * @param null|integer $offset 偏移
+     * @param null|integer $limit  选择的最大的数据量
      * @return string
      */
-    public function buildSql($tablename,array $components,$offset=NULL,$limit=NULL){
-        return $this->driver->buildSql($tablename,$components,$offset,$limit);
+    public function buildSql($tablename,array $components=[],$offset=NULL,$limit=NULL){
+        return $this->driver->buildSqlByComponent($tablename,$components,$offset,$limit);
     }
+
+
     /**
-     * ȡ�����ݱ���ֶ���Ϣ
+     * 获取数据表字段
      * @access public
      * @param $tableName
      * @return array
      */
     public function getFields($tableName){
         return $this->driver->getFields($tableName);
-    }
-
-    /**
-     * �������ݿ�
-     * @param string $dbname ���ݿ�����
-     * @return int ��Ӱ�������
-     */
-    public function createDatabase($dbname){
-        return $this->driver->createDatabase($dbname);
     }
 
 
