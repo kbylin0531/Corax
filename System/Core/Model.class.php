@@ -24,6 +24,14 @@ class Model{
     protected $dao = null;
 
     /**
+     * 开关
+     * @var array
+     */
+    protected static $_switcher = array(
+        'SHOW_ERROR' => true,//决定是否向用户显示错误信息
+    );
+
+    /**
      * 字段映射
      * 将表单提交的字段映射为数据库对应的字段名称
      * 例如：

@@ -9,21 +9,21 @@ namespace System\Core;
 use System\Exception\ParameterInvalidException;
 
 /**
- * Class ExtDao À©Õ¹µÄÊý¾ÝÈë¿Ú¶ÔÏó
+ * Class ExtDao æ–¹æ³•æ‰©å±•çš„Dao
  * @package System\Core
  */
 class ExtDao extends Dao {
     /**
-     * ÎªÖ¸¶¨µÄÊý¾Ý±í²åÈëÒ»ÌõÊý¾Ý
+     * ÎªÖ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      * <code>
      *      $fldsMap ==> array(
-     *          //-- µÚÒ»ÖÖÇé¿ö£¬²»»á½øÐÐ×ªÒå --//
+     *          //-- ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ --//
      *          'fieldName' => 'fieldValue',
-     *          //-- µÚ¶þÖÖÇé¿ö,[Öµ£¬ÊÇ·ñ×ªÒå] --//
+     *          //-- ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,[Öµï¿½ï¿½ï¿½Ç·ï¿½×ªï¿½ï¿½] --//
      *          'fieldName' => array('fieldValue',boolean),
      *      );
      *
-     *     #Å£ÈËÏëµ½µÄÒ»¸ö°ì·¨(MySQL)
+     *     #Å£ï¿½ï¿½ï¿½ëµ½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ì·¨(MySQL)
      *     $data = ['a'=>'foo','b'=>'bar'];
      *     $keys = array_keys($data);
      *     $fields = '`'.implode('`, `',$keys).'`';
@@ -48,7 +48,7 @@ class ExtDao extends Dao {
                 $colnm = $fieldName;
                 if($flag_n){
                     if(is_numeric($fieldName)){
-                        $colnm = $fieldName = 'fields_'.$fieldName;////¶ÔÓÚarray('1', '[NAME]', '[PASS]', '[EMAIL]', '', '[TIME]', '[IP]', 0, 0, '[TIME]', '1')µÄÇé¿ö
+                        $colnm = $fieldName = 'fields_'.$fieldName;////ï¿½ï¿½ï¿½ï¿½array('1', '[NAME]', '[PASS]', '[EMAIL]', '', '[TIME]', '[IP]', 0, 0, '[TIME]', '1')ï¿½ï¿½ï¿½ï¿½ï¿½
                         $flag = false;
                     }
                     $flag_n = false;
@@ -57,8 +57,8 @@ class ExtDao extends Dao {
                     $colnm = $fieldValue[1]?$this->driver->escapeField($fieldName):$fieldName;
                     $fieldValue = $fieldValue[0];
                 }
-                if($flag){//×Ö·û
-                    //Æ´½Ó²åÈëSQL×Ö·û´®
+                if($flag){//ï¿½Ö·ï¿½
+                    //Æ´ï¿½Ó²ï¿½ï¿½ï¿½SQLï¿½Ö·ï¿½ï¿½ï¿½
                     $fields .= " {$colnm} ,";
                     $placeholder  .= " :{$fieldName} ,";
                     $bind[":{$fieldName}"] = $fieldValue;
@@ -80,11 +80,11 @@ class ExtDao extends Dao {
     }
 
     /**
-     * ÎªÖ¸¶¨µÄÊý¾Ý±í¸üÐÂ¼ÇÂ¼
+     * ÎªÖ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½Â¼ï¿½Â¼
      * @param string $tablename
      * @param string|array $flds
      * @param string|array $whr
-     * @return int|string ·µ»ØÊÜÓ°ÏìµÄÐÐÊý
+     * @return int|string ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      */
     public function update($tablename,$flds,$whr){
         $fields = is_string($flds)?array($flds,array()):$this->makeSegments($flds,false);
@@ -95,7 +95,7 @@ class ExtDao extends Dao {
     }
 
     /**
-     * É¾³ýÊý¾Ý
+     * É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      * @param $tablename
      * @param $whr
      * @return int|string
@@ -108,7 +108,7 @@ class ExtDao extends Dao {
     }
 
     /**
-     * ²éÑ¯Ò»¶ÎSQL
+     * ï¿½ï¿½Ñ¯Ò»ï¿½ï¿½SQL
      * @param string $tablename
      * @param string|array|null $fields
      * @param string|array|null $whr
@@ -139,7 +139,7 @@ class ExtDao extends Dao {
     }
 
     /**
-     * ×ÛºÏ×Ö¶Î°ó¶¨µÄ·½·¨
+     * ï¿½Ûºï¿½ï¿½Ö¶Î°ó¶¨µÄ·ï¿½ï¿½ï¿½
      * <code>
      *      $operator = '='
      *          $fieldName = :$fieldName
@@ -152,28 +152,28 @@ class ExtDao extends Dao {
      *      $operator = 'in|not_in'
      *          $fieldName in|not_in array(...explode(...,$fieldValue)...)
      * </code>
-     * @param string $fieldName ×Ö¶ÎÃû³Æ
-     * @param string|array $fieldValue ×Ö¶ÎÖµ
-     * @param string $operator ²Ù×÷·û
-     * @param bool $translate ÊÇ·ñ¶Ô×Ö¶ÎÃû³Æ½øÐÐ×ªÒå,MSSQLÖÐÊ¹ÓÃ[]
+     * @param string $fieldName ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @param string|array $fieldValue ï¿½Ö¶ï¿½Öµ
+     * @param string $operator ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @param bool $translate ï¿½Ç·ï¿½ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½×ªï¿½ï¿½,MSSQLï¿½ï¿½Ê¹ï¿½ï¿½[]
      * @return array
      * @throws ParameterInvalidException
      */
     protected function makeFieldBind($fieldName,$fieldValue,$operator='=',$translate=false){
-        static $suffix = 1;//Ê¹ÓÃ³¡¾°ÊÇupdateÊ±¼ÈÓÐset°ó¶¨ÓÖÓÐwhere°ó¶¨Ê±£¬Çø·ÖÇ°ºó¶þÕß£¬½«suffixÉèÖÃ¿ÉÒÔ·ÀÖ¹Ç°ºó³åÍ»
-        //°ó¶¨ÉèÖÃ
+        static $suffix = 1;//Ê¹ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ï¿½updateÊ±ï¿½ï¿½ï¿½ï¿½setï¿½ï¿½ï¿½ï¿½ï¿½ï¿½whereï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½suffixï¿½ï¿½ï¿½Ã¿ï¿½ï¿½Ô·ï¿½Ö¹Ç°ï¿½ï¿½ï¿½Í»
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         $fieldName = trim($fieldName, ' :');
         $fieldBindName = null;
-        if (false !== strpos($fieldName, '.')) {//´æÔÚÔòÑ¡Ôñ×îºóÒ»½Ú ot_students.id  ==> id
+        if (false !== strpos($fieldName, '.')) {//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ ot_students.id  ==> id
             $arr = explode('.', $fieldName);
             $fieldBindName = ':' . array_pop($arr);
-        } elseif (mb_strlen($fieldName, 'utf-8') < strlen($fieldName)) {//×Ö¶ÎÃû³ÆÎªÆäËûµÄ±àÂë
+        } elseif (mb_strlen($fieldName, 'utf-8') < strlen($fieldName)) {//ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
             $fieldBindName = ':' . md5($fieldName);
         } else {
             $fieldBindName = ":{$fieldName}";
         }
-        $fieldBindName .= $suffix;//ºó×ºÏÎ½Ó
-        //²Ù×÷·ûÉèÖÃ
+        $fieldBindName .= $suffix;//ï¿½ï¿½×ºï¿½Î½ï¿½
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         $operator = strtolower(trim($operator));
         $sql = $translate ? $this->driver->escapeField($fieldName) : $fieldName ;
         $bind = array();
@@ -209,48 +209,48 @@ class ExtDao extends Dao {
 
     /**
      * <note>
-     *      Æ¬¶Î×¼Ôò
+     *      Æ¬ï¿½ï¿½×¼ï¿½ï¿½
      *      $map == array(
-     *          //-- µÚÒ»ÖÖÇé¿ö,Á¬½Ó·ûºÅÒ»¶¨ÊÇ'='£¬²¢ÇÒ×Ö¶ÎÃû³Æ²»ÊÇ±£Áô×Ö --//
+     *          //-- ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½Ó·ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½'='ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½Æ²ï¿½ï¿½Ç±ï¿½ï¿½ï¿½ï¿½ï¿½ --//
      *          'key' => $val,
-     *          //-- µÚ¶þÖÖÇé¿ö£¬[°ó¶¨Öµ£¬ÊÇ·ñ×ªÒå£¬²Ù×÷·û] --//
-     *          'key' => array($val,true,$operator),//²¼¶ûÖµÇé¿öÈçÏÂ,ÒÅÁôÎÊÌâ£¬²ÎÊý¶þºÍÈýÓ¦¸Ãµ¹ÖÃ
-     *          //-- µÚÈýÖÖÇé¿ö£¬[ÍêÕûµÄSQLÆ¬¶Î£¬°ó¶¨Ãû³Æ£¬°ó¶¨Öµ] --//
-     *          array('assignSql',':bindSQLSegment',value),//²ÎÊý4µÄÖµÎªtrueÊ±±íÊ¾¶Ôkey½øÐÐ[]×ªÒå
+     *          //-- ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½Öµï¿½ï¿½ï¿½Ç·ï¿½×ªï¿½å£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½] --//
+     *          'key' => array($val,true,$operator),//ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ãµï¿½ï¿½ï¿½
+     *          //-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SQLÆ¬ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½Öµ] --//
+     *          array('assignSql',':bindSQLSegment',value),//ï¿½ï¿½ï¿½ï¿½4ï¿½ï¿½ÖµÎªtrueÊ±ï¿½ï¿½Ê¾ï¿½ï¿½keyï¿½ï¿½ï¿½ï¿½[]×ªï¿½ï¿½
      *      );
      * </note>
-     * @param array $segments ×Ö¶Î°ó¶¨Æ¬¶Î
-     * @param bool $is_and ±íÊ¾ÊÇ·ñÊ¹ÓÃand×÷ÎªÁ¬½Ó·û£¬falseÊ±Îª,
+     * @param array $segments ï¿½Ö¶Î°ï¿½Æ¬ï¿½ï¿½
+     * @param bool $is_and ï¿½ï¿½Ê¾ï¿½Ç·ï¿½Ê¹ï¿½ï¿½andï¿½ï¿½Îªï¿½ï¿½ï¿½Ó·ï¿½ï¿½ï¿½falseÊ±Îª,
      * @return array
      */
     public function makeSegments($segments,$is_and=true){
-        //³õÊ¼ÖµÓë²ÎÊý¼ì²â
+        //ï¿½ï¿½Ê¼Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         $bind = array();
         $sql = '';
         if(empty($segments)){
             return array($sql,$bind);
         }
-        //Æ¬¶ÎÖ®¼äµÄÁ¬½Ó
+        //Æ¬ï¿½ï¿½Ö®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         $bridge = $is_and?'and':',';
 
-        //ÔªËØÁ¬½Ó
+        //Ôªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         foreach($segments as $key=>$val){
-            if(is_numeric($key)){//µÚÈýÖÖÇé¿ö
+            if(is_numeric($key)){//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 $sql .= " {$val[0]} $bridge";
                 $bind[$val[1]] = $val[2];
             }else{
                 $rst = null;
-                if(is_array($val)){//µÚ¶þÖÖÇé¿ö
+                if(is_array($val)){//ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     $rst = $this->makeFieldBind(
                         $val[0],
                         $val[1],
                         empty($val[2])?' = ':$val[2],
                         $val[3]
                     );
-                }else{//µÚÒ»ÖÖÇé¿ö
+                }else{//ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½
                     $rst = $this->makeFieldBind($key,$val);
                 }
-                //ºÏ²¢°ó¶¨²ÎÊý
+                //ï¿½Ï²ï¿½ï¿½ó¶¨²ï¿½ï¿½ï¿½
                 if(is_array($rst)){
                     $sql .= " {$rst[0]} $bridge";
                     $bind = array_merge($bind, $rst[1]);
@@ -258,14 +258,14 @@ class ExtDao extends Dao {
             }
         }
         return array(
-            substr($sql,0,strlen($sql)-strlen($bridge)),//È¥³ý×îºóÒ»¸öand
+            substr($sql,0,strlen($sql)-strlen($bridge)),//È¥ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½and
             $bind,
         );
     }
     /**
-     * ¸ù¾ÝSQLµÄ¸÷¸ö×é³É²¿·Ö´´½¨SQL²éÑ¯Óï¾ä
-     * @param string $tablename Êý¾Ý±íµÄÃû³Æ
-     * @param array $components sql×é³É²¿·Ö
+     * ï¿½ï¿½ï¿½ï¿½SQLï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½É²ï¿½ï¿½Ö´ï¿½ï¿½ï¿½SQLï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½
+     * @param string $tablename ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @param array $components sqlï¿½ï¿½É²ï¿½ï¿½ï¿½
      * @param int $offset
      * @param int $limit
      * @return string
@@ -274,7 +274,7 @@ class ExtDao extends Dao {
         return $this->driver->buildSql($tablename,$components,$offset,$limit);
     }
     /**
-     * È¡µÃÊý¾Ý±íµÄ×Ö¶ÎÐÅÏ¢
+     * È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½Ï¢
      * @access public
      * @param $tableName
      * @return array
@@ -284,11 +284,48 @@ class ExtDao extends Dao {
     }
 
     /**
-     * ´´½¨Êý¾Ý¿â
-     * @param string $dbname Êý¾Ý¿âÃû³Æ
-     * @return int ÊÜÓ°ÏìµÄÐÐÊý
+     * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½
+     * @param string $dbname ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @return int ï¿½ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      */
     public function createDatabase($dbname){
         return $this->driver->createDatabase($dbname);
     }
+
+
+    /**
+     * æ‰§è¡Œç»“æžœä¿¡æ¯è¿”å›ž
+     * @return int|string è¿”å›žå—å½±å“è¡Œæ•°ï¼Œå‘ç”Ÿé”™è¯¯æ—¶è¿”å›žé”™è¯¯ä¿¡æ¯
+     */
+    public function doneExecute(){
+        if(null === $this->error){
+            //æœªå‘ç”Ÿé”™è¯¯ï¼Œè¿”å›žå—å½±å“çš„è¡Œæ•°ç›®
+            return $this->rowCount();
+        }else{
+            //å‘ç”Ÿé¥¿äº†é”™è¯¯ï¼Œå¾—åˆ°é”™è¯¯ä¿¡æ¯å¹¶æ¸…ç©ºé”™è¯¯æ ‡è®°
+            $temp = $this->error;
+            $this->error = null;
+            return $temp;
+        }
+    }
+    /**
+     * æŸ¥è¯¢ç»“æžœé›†å…¨éƒ¨è¿”å›ž
+     * å†…éƒ¨å®žçŽ°ä¾èµ–äºŽfetchAllæ–¹æ³•ï¼Œå‚æ•°åŒ
+     * @param null $fetch_style
+     * @param null $fetch_argument
+     * @param null $constructor_args
+     * @return string|Dao è¿”å›žæŸ¥è¯¢ç»“æžœé›†ï¼Œå‘ç”Ÿé”™è¯¯æ—¶è¿”å›žé”™è¯¯ä¿¡æ¯
+     */
+    public function doneQuery($fetch_style = null, $fetch_argument = null, $constructor_args = null){
+        if(null === $this->error){
+            //æœªå‘ç”Ÿé”™è¯¯ï¼Œè¿”å›žå—å½±å“çš„è¡Œæ•°ç›®
+            return $this->fetchAll($fetch_style, $fetch_argument, $constructor_args);
+        }else{
+            //å‘ç”Ÿé¥¿äº†é”™è¯¯ï¼Œå¾—åˆ°é”™è¯¯ä¿¡æ¯å¹¶æ¸…ç©ºé”™è¯¯æ ‡è®°
+            $temp = $this->error;
+            $this->error = null;
+            return $temp;
+        }
+    }
+
 }

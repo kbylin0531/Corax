@@ -6,6 +6,7 @@
  * Time: 11:01
  */
 namespace Application\Admin\Common\Controller;
+use Application\Admin\Common\Model\AdminModel;
 use System\Core\Configer;
 use System\Core\Controller;
 use System\Core\Router;
@@ -28,88 +29,9 @@ class AdminController extends Controller{
         //topbar active index
         $tai = isset($_REQUEST['_tai'])?intval($_REQUEST['_tai']):1;
 
-        $this->assignTopNavBar([
-            'menus' => [
-                //Home模块
-                [
-                    'index'     => 1,
-                    'name'      => 'User',
-                    'url'       => $this->buildUrl('admin/member/management/index',1,1),
-                ],
-                //About单个菜单
-                [
-                    'index'     => 2,
-                    'name'      => 'System',
-                    'url'       => '#'
-                ],
-                //复合菜单一
-                [
-                    'index'    => 3,
-                    'name'  => 'Contact',
-                    'type'  => 1,
-                    'menus'     => [
-                        [
-                            'index'    => 3,
-                            'name'  => 'Action',
-                            'url'       => '#'
-                        ],
-                        [
-                            'index'    => 3,
-                            'name'  => 'Another',
-                            'url'       => '#'
-                        ],
-                        [
-                            'index'    => 3,
-                            'name'  => 'Something',
-                            'menus'     => [
-                                [
-                                    'index'    => 3,
-                                    'name'  => 'Look',
-                                    'url'       => '#'
-                                ],
-                                [
-                                    'index'    => 3,
-                                    'name'  => 'Nice',
-                                    'url'       => '#'
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                //复合菜单二
-                [
-                    'index'    => 4,
-                    'name'  => 'Knowledge',
-                    'type'  => 2,
-                    'menus'     => [
-                        [
-                            [
-                                'index'     => 4,
-                                'name'      => 'Look',
-                                'url'       => '#',
-                            ],
-                            [
-                                'index'     => 4,
-                                'name'      => 'Nice',
-                                'url'       => '#'
-                            ],
-                        ],
-                        [
-                            [
-                                'index'     => 4,
-                                'name'      => 'Look',
-                                'icon'      => 'icon-gear', // 设置了图标之后无法使url生效
-                            ],
-                            [
-                                'index'     => 4,
-                                'name'      => 'Nice',
-                                'url'       => '#'
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ],$tai);
+        $adminModel = new AdminModel();
+
+        $this->assignTopNavBar($adminModel->getTopBarMenuConfig(),$tai);
         $this->assignUserInfo([
             'nickname'  =>  'Linzhv',
             'avatar'    =>  URL_PUBLIC_PATH.'/images/avatar2.jpg',
@@ -168,16 +90,6 @@ class AdminController extends Controller{
         ]);
     }
 
-    /**
-     * 建立URL
-     * @param string $url url
-     * @param int $tai current topbar index
-     * @param int $sai default sidebar index
-     * @return string
-     */
-    private function buildUrl($url,$tai,$sai){
-        return SEK::url($url,['_tai'=>$tai,'_sai'=>$sai]);
-    }
 
     /**
      * @param array $barconf 配置顺粗

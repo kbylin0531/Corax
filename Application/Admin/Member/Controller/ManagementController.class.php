@@ -14,9 +14,6 @@ use Application\Admin\Common\Controller\AdminController;
  */
 class ManagementController extends AdminController {
 
-    public function __construct(){
-        parent::__construct();
-    }
 
     public function index(){
         $this->display();

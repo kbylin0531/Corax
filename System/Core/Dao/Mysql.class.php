@@ -15,7 +15,7 @@ defined('BASE_PATH') or die('No Permission!');
  * Class MysqlDriver
  * @package System\Core\DaoDriver
  */
-class Mysql extends Base{
+class Mysql extends DatabaseDriver{
 
     protected static $_l_quote = '`';
     protected static $_r_quote = '`';
@@ -46,6 +46,33 @@ class Mysql extends Base{
         return self::$_l_quote.$fieldname.self::$_r_quote;
     }
 
+    /**
+     * @param array $config
+     * @return string
+     */
+    public function buildDSN($config){
+        $dsn  =  "mysql:host={$config['host']}";
+        if(isset($config['dbname'])){
+            $dsn .= ";dbname={$config['dbname']}";
+        }
+        if(!empty($config['port'])) {
+            $dsn .= ';port=' . $config['port'];
+        }
+        if(!empty($config['socket'])){
+            $dsn  .= ';unix_socket='.$config['socket'];
+        }
+        if(!empty($config['charset'])){
+            $dsn  .= ';charset='.$config['charset'];
+        }
+        return $dsn;
+    }
+
+    public function buildSqlByComponent($tablename,$componets=[],$offset=null,$limit=null){
+
+
+
+
+    }
 
     /**
      * 根据SQL的各个组成部分创建SQL查询语句

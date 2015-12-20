@@ -64,7 +64,7 @@ class AuthGroupModel extends Model {
         $uid_arr = explode(',',$uid);
 		$uid_arr = array_diff((array)$uid_arr,array(C('USER_ADMINISTRATOR')));
         $add = array();
-        if( $del!==false ){
+            if( $del!==false ){
             foreach ($uid_arr as $u){
             	//判断用户id是否合法
             	if(M('User')->getFieldByUid($u,'uid') == false){
