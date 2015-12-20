@@ -23,6 +23,28 @@ class Model{
     protected $dao = null;
 
     /**
+     * 模型的惯例配置
+     * @var array
+     */
+    protected static $convention = [
+        //数据表的默认前缀
+        'DEFAULT_TABLE_PREFIX'  => 'co_',
+        //默认的主键名称
+        'DEFAULT_PRIMAR_KEY'    => 'id',
+    ];
+
+    /**
+     * SQL各个组成部分
+     * @var array
+     */
+    protected $components = [];
+    /**
+     * 输入绑定参数
+     * @var array
+     */
+    protected $input_params = [];
+
+    /**
      * 开关
      * @var array
      */
@@ -48,10 +70,15 @@ class Model{
     protected $fields = [];
 
     /**
-     * 默认的表前缀
+     * 表前缀
      * @var string
      */
     protected $prefix = '';
+    /**
+     * 实际的对应的数据表的名称
+     * @var string
+     */
+    protected $real_tablename = null;
 
     /**
      * 主键，可以是复合主键(数组)
@@ -60,11 +87,10 @@ class Model{
     protected $primar_key = 'id';
 
     /**
-     * 实际的对应的数据表的名称
+     * 模型所属模块名称
      * @var string
      */
-    protected $real_tablename = null;
-
+    protected $modulesname = null;
     /**
      * 模型名称，不包含命名空间部分和Model后缀
      * @var string
@@ -72,25 +98,25 @@ class Model{
     protected $modelname = null;
 
     /**
-     * 模型所属模块名称
-     * @var string
-     */
-    protected $modulesname = null;
-
-    /**
      * 构造函数
      * @param array $config 模型配置选项(array)
      * @throws CoraxException
      */
     public function __construct(array $config=null){
+        //自动识别模型所属模块和模型类名称
         $matches = null;
         $currentModelName = get_called_class();
         if(preg_match('/^Application\\\(.*)\\\Model\\\(.*)Model$/',$currentModelName,$matches)){
             $this->modulesname = str_replace('\\','/',$matches[1]);
             $this->modelname = $matches[2];
-        }else{
-            throw new CoraxException("Class {$currentModelName} auto fetch falied!");
-        }
+        }else{/*不匹配说明是Model类*/}
+
+        //加载模型配置
+        SEK::merge(self::$convention,Configer::load('database'));
+
+        $modelname = SEK::toCStyle($matches[2]);
+        $this->setTableName($modelname);
+
         if(isset($config)){
             //动态设置属性
             foreach($config as $name => $item){
@@ -98,22 +124,59 @@ class Model{
             }
         }else{
             //默认设置的情况下
-            if(!isset($this->real_tablename)){
-                $modelname = SEK::toJavaStyle($matches[2]);
-                $this->setTableName($modelname);
+            if(null === $this->real_tablename){
             }
         }
         $this->reset();
     }
 
+
+    /**
+     * 重置组件和input_params设置
+     */
+    public function reset(){
+        $this->components = [
+            /**
+             * 用于告诉SQL服务器返回唯一不同的值的集合
+             */
+            'distinct'  =>  null,
+            /**
+             * 不同的数据库用法是不同的
+             * SQL server   :SELECT TOP number|percent column_name(s) FROM table_name
+             * MySQL        :SELECT column_name(s) FROM table_name LIMIT number
+             * Oracel       :SELECT column_name(s) FROM table_name WHERE ROWNUM <= number
+             */
+            'top'           => null,
+            'top_percent'   => false,//针对MSSQL有效
+            /**
+             * 表示获取表的列的名称
+             */
+            'fields'=>' * ', //查询的表域情况
+            'table' => null,
+            'join'  => null,     //join部分，需要带上join关键字
+            'where' => null, //where部分
+            'group' => null, //分组 需要带上group by
+            'having'=> null,//having子句，依赖$group存在，需要带上having部分
+            'order' => null,//排序，不需要带上order by
+            /**
+             * 注意limit可能会与top在MYSQL数据库中使用冲突(两个limit)
+             * Oracel和MSSQL无法使用limit关键字
+             * Mysql中limit放到最后
+             * 使用offset的前提是limit不为null
+             */
+            'offset'=> null,
+            'limit' => null,
+        ];
+        $this->input_params = [];
+    }
     /**
      * 设置表的名称
      * @param string $tablename 数据表名称，不带前缀
-     * @param bool $autofill_prefix 是否自动填充前缀
+     * @param bool $autofill_prefix 是否自动检查并填充前缀
      * @return void
      */
     protected function setTableName($tablename,$autofill_prefix=true){
-        if($autofill_prefix and $this->prefix and 0 !== strpos($tablename,$this->prefix)){//不是以前缀开头，自动添加前缀
+        if($autofill_prefix and $this->prefix and 0 !== stripos($tablename,$this->prefix)){//不是以前缀开头，自动添加前缀
             $this->real_tablename = $this->prefix.$tablename;
         }else{
             $this->real_tablename = $tablename;
@@ -130,30 +193,27 @@ class Model{
 
     /**
      * 初始化连接配置
-     * @param string|array $config 连接配置标识符 或者 配置数组
+     * @param string|array $identifier 连接配置标识符 或者 配置数组
      * @return void
      */
-    public function init($config='0'){
-        $this->dao = Dao::getInstance($config);
+    public function init($identifier=null){
+        $this->dao = Dao::getInstance($identifier);
     }
 
-    /**
-     * 获取查询出错信息
-     * @return string
-     */
-    public function getErrorInfo(){
-        return isset($this->dao)? $this->dao->getErrorInfo() : '';
-    }
-
+//------------------ 常用操作 --------------------------------------------------------------//
     /**
      * 执行一段查询SQL
-     * @param string$sql
-     * @param array $inputs
+     * @param string|array $mixedParams 为string类型时表示直接查询的SQL语句，为array类型时表示绑定的输入参数数组，此时返回链式操作的结果
+     * @param array|null $inputs 如果参数1是string类型，则参数二代表输入的参数
      * @return array|false 返回数组结果集合,返回false表示执行失败
      */
-    public function query($sql,array $inputs=null){
+    public function query($mixedParams,array $inputs=null){
         isset($this->dao) or $this->init();
-        $rst = $this->dao->prepare($sql)->execute($inputs);
+        if(is_array($mixedParams)){
+            //链式操作结果
+            $mixedParams = $this->dao->compile($mixedParams);
+        }
+        $rst = $this->dao->prepare($mixedParams)->execute($inputs);
         if(false === $rst){
             return false;
         }
@@ -176,119 +236,14 @@ class Model{
     }
 
     /**
-     * 插入数据库记录
-     * @param array $fields
-     * @param string $tablename
-     * @return int|string
-     * @throws \Exception
+     * 获取查询出错信息
+     * @return string
      */
-    public function create(array $fields,$tablename=null){
-        isset($this->dao) or $this->init();
-        isset($tablename) or $tablename = $this->getTableName();
-        return $this->dao->create($tablename,$fields);
+    public function getErrorInfo(){
+        return isset($this->dao)? $this->dao->getErrorInfo() : '';
     }
 
-    /**
-     * 更新记录
-     * @param mixed $fields
-     * @param mixed $where
-     * @param string $tablename
-     * @return int|string 受影响行数或者错误信息
-     * @throws \Exception
-     */
-    public function update($fields=null,$where=null,$tablename=null){
-        isset($this->dao) or $this->init();
-        isset($tablename) or $tablename = $this->getTableName();
-        return $this->dao->update($tablename,$fields,$where);
-    }
-
-    /**
-     * 获取记录
-     * @param mixed $fields
-     * @param mixed $where
-     * @param string $tablename
-     * @return array|bool
-     */
-    public function select($fields=null,$where=null,$tablename=null){
-        isset($this->dao) or $this->init();
-        isset($tablename) or $tablename = $this->getTableName();
-        return $this->dao->select($tablename,$fields,$where);
-    }
-
-    /**
-     * 获取一条记录
-     * 如果记录有多条，需要使用select进行获取，否则获取结果数目不等于1时会返回string类型错误信息
-     * @param mixed $fields
-     * @param mixed $where
-     * @param string $tablename
-     * @return array|bool
-     */
-    public function find($fields=null,$where=null,$tablename=null){
-        isset($this->dao) or $this->init();
-        isset($tablename) or $tablename = $this->getTableName();
-        $rst = $this->dao->select($tablename,$fields,$where);
-        return count($rst) !== 1? false:$rst[0];
-    }
-
-    /**
-     * 删除记录
-     * @param mixed $where
-     * @param string $tablename
-     * @return int|string
-     */
-    public function delete($where=null,$tablename=null){
-        isset($this->dao) or $this->init();
-        isset($tablename) or $tablename = $this->getTableName();
-        return $this->dao->delete($tablename,$where);
-    }
-
-    /**
-     * SQL各个组成部分
-     * @var array
-     */
-    protected $components = [];
-    /**
-     * 输入绑定参数
-     * @var array
-     */
-    protected $input_params = [];
-
-    /**
-     * 重置组件和input_params设置
-     */
-    public function reset(){
-        $this->components = [
-            /**
-             * 用于告诉SQL服务器返回唯一不同的值的集合
-             */
-            'distinct'  =>  null,
-            /**
-             * 不同的数据库用法是不同的
-             * SQL server   ：SELECT TOP number|percent column_name(s) FROM table_name
-             * MySQL        :SELECT column_name(s) FROM table_name LIMIT number
-             * Oracel       :SELECT column_name(s) FROM table_name WHERE ROWNUM <= number
-             */
-            'top'           => null,
-            'top_percent'   => false,//针对MSSQL有效
-            /**
-             * 表示获取表的列的名称
-             */
-            'fields'=>' * ', //查询的表域情况
-            'join'  => null,     //join部分，需要带上join关键字
-            'where' => null, //where部分
-            'group' => null, //分组 需要带上group by
-            'having'=> null,//having子句，依赖$group存在，需要带上having部分
-            'order' => null,//排序，不需要带上order by
-            /**
-             * 注意limit可能会与top在MYSQL数据库中使用冲突(两个limit)
-             * Oracel和MSSQL无法使用limit关键字
-             */
-            'offset'=> null,
-            'limit' => null,
-        ];
-        $this->input_params = [];
-    }
-
+//----------------- 链式操作的方法 ----------------------------------------------------------//
     /**
      * 表示是否设置distinct
      * @param bool $isdist
@@ -313,11 +268,33 @@ class Model{
 
     /**
      * 设置获取的表域
-     * @param null|string $fields 不设置参数时获取全部
+     * @param null|string|array $fields 不设置参数时获取全部
      * @return $this
+     * @throws CoraxException
      */
     public function fields($fields=null){
-        null !== $fields and $this->components['fields'] = $fields;
+        if(null !== $fields){
+            if(is_array($fields)){
+                //默认全部转义
+                array_map(function($item){
+                    return $this->dao->escape($item);
+                },$fields);
+                $fields = implode(',',$fields);
+            }elseif(!is_string($fields)){
+                throw new CoraxException("Require the parameter which type is 'array' or 'string'");
+            }
+            $this->components['fields'] = $fields;
+        }
+        return $this;
+    }
+
+    /**
+     * 设置操作的表的名称
+     * @param string $tablename 数据表的名称
+     * @return $this
+     */
+    public function table($tablename){
+        $this->components['table'] = $tablename;
         return $this;
     }
 
@@ -385,12 +362,105 @@ class Model{
      * 变异组件并返回SQL语句和绑定参数
      * @param bool|true $clear 变异完成后是否清空，默认清空
      * @return string
+     * @throws CoraxException
      */
     public function compile($clear=true){
+        if($this->components['table']){
+            throw new CoraxException('Empty table is invalid!');
+        }
         $sql = $this->dao->compile($this->components);
         $bind = $this->input_params;
         $clear and $this->reset();
         return [$sql,$bind];
     }
+
+//----------------- 基本操作，同时可以用于链式操作  ----------------------------------------------------------//
+    /**
+     * 创建数据对象
+     * @param array $fields
+     * @param string $tablename
+     * @return int|string
+     * @throws \Exception
+     */
+    public function create(array $fields,$tablename=null){
+        isset($this->dao) or $this->init();
+        isset($tablename) or $tablename = $this->getTableName();
+        return $this->dao->create($tablename,$fields);
+    }
+
+    /**
+     * 插入数据库记录
+     * @param array|null $fields
+     * @param null $tablename
+     * @return bool|int 返回false表示发生了错误，返回int表示收到影响的行的数目
+     * @throws CoraxException
+     */
+    public function insert(array $fields=null,$tablename=null){
+        $this->dao or $this->init();
+        null === $fields    and $fields = $this->components['fields'];
+        null === $tablename and $tablename = $this->getTableName();
+        $piled = $this->dao->create($tablename,$fields);
+        return $this->execute($piled[0],$piled[1]);
+    }
+
+    /**
+     * 更新记录
+     * @param mixed $fields
+     * @param mixed $where
+     * @param string $tablename
+     * @return int|string 受影响行数或者错误信息
+     * @throws \Exception
+     */
+    public function update($fields=null,$where=null,$tablename=null){
+        $this->dao or $this->init();
+        null === $fields    and $fields = $this->components['fields'];
+        null === $tablename and $tablename = $this->getTableName();
+        null === $where     and $where = $this->components['where'];
+        return $this->dao->update($tablename,$fields,$where);
+    }
+
+    /**
+     * 获取记录
+     * @param string|array $fields
+     * @param string|array $where
+     * @param string $tablename
+     * @return array|bool
+     */
+    public function select($fields=null,$where=null,$tablename=null){
+        isset($this->dao) or $this->init();
+        null === $fields    and $fields = $this->components['fields'];
+        null === $tablename and $tablename = $this->getTableName();
+        null === $where     and $where = $this->components['where'];
+        return $this->dao->select($tablename,$fields,$where);
+    }
+
+    /**
+     * 获取一条记录
+     * 如果记录有多条，需要使用select进行获取，否则获取结果数目不等于1时会返回string类型错误信息
+     * 调用这个方法时需要知道的是这个方法只会返回单条记录，如果不是单条记录或者查询出错都会返回false
+     * @param mixed $fields
+     * @param mixed $where
+     * @param string $tablename
+     * @return array|bool
+     */
+    public function find($fields=null,$where=null,$tablename=null){
+        $rst = $this->dao->select($tablename,$fields,$where);
+        return (false === $rst or count($rst) !== 1)? false : $rst[0];
+    }
+
+    /**
+     * 删除记录
+     * @param mixed $where
+     * @param string $tablename
+     * @return int|string
+     */
+    public function delete($where=null,$tablename=null){
+        isset($this->dao) or $this->init();
+        null === $tablename and $tablename = $this->getTableName();
+        null === $where     and $where = $this->components['where'];
+        return $this->dao->delete($tablename,$where);
+    }
+
+
 
 }

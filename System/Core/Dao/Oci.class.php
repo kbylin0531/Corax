@@ -7,7 +7,7 @@
  */
 namespace System\Core\Dao;
 
-class Oci extends ExtPDO {
+class Oci extends AbstractPDO {
     /**
      * @param array $config
      * @return string

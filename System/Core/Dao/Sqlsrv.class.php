@@ -7,7 +7,7 @@
  */
 namespace System\Core\Dao;
 
-class Sqlsrv extends ExtPDO {
+class Sqlsrv extends AbstractPDO {
     /**
      * @param array $config
      * @return string

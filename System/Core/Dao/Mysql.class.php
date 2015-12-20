@@ -15,12 +15,16 @@ defined('BASE_PATH') or die('No Permission!');
  * Class MysqlDriver
  * @package System\Core\DaoDriver
  */
-class Mysql extends ExtPDO{
+class Mysql extends AbstractPDO{
 
     protected static $_l_quote = '`';
     protected static $_r_quote = '`';
 
-
+    /**
+     * 构造函数
+     * @param array $config
+     * @throws CoraxException
+     */
     public function __construct(array $config){
         //检查扩展是否开启
         if(!SEK::phpExtend('pdo_mysql')){
@@ -32,80 +36,55 @@ class Mysql extends ExtPDO{
 
     /**
      * 编译组件成适应当前数据库的SQL字符串
-     * @param string $tablename 查找的表名称,不需要带上from部分
-     * @param array $components  复杂SQL的组成部分
-     * @return string
+     * @param array $compos  复杂SQL的组成部分
+     * @return string 返回编译后的SQL字符串
+     * @throws CoraxException
      */
-    public function compile($tablename,$components){
-
-        $components = array(
-            'distinct'=>'',
+    public function compile(array $compos){
+        $components = [
+            'distinct'  =>  null,
             'fields'=>' * ', //查询的表域情况
-            'join'=>'',     //join部分，需要带上join关键字
-            'where'=>'', //where部分
-            'group'=>'', //分组 需要带上group by
-            'having'=>'',//having子句，依赖$group存在，需要带上having部分
-            'order'=>'',//排序，不需要带上order by
-        );
+            'table' => null,
+            'join'  => null,     //join部分，需要带上join关键字
+            'where' => null, //where部分
+            'group' => null, //分组 需要带上group by
+            'having'=> null,//having子句，依赖$group存在，需要带上having部分
+            'order' => null,//排序，不需要带上order by
+            'offset'=> null,
+            'limit' => null,
+        ];
         $components = array_merge($components,$compos);
-        if($components['distinct']){//为true或者1时转化为distinct关键字
-            $components['distinct'] = 'distinct';
+        if(!$components['table']){
+            throw new CoraxException('Empty table name is invalid!');
         }
-        $sql = " select {$components['distinct']} {$components['fields']}  from  {$tablename} ";
-
-        //group by，having 加上关键字(对于如group by的组合关键字，只要判断第一个是否存在)如果不是以该关键字开头  则自动添加
-        if($components['where'] && 0 !== stripos(trim($components['where']),'where')){
-            $components['where'] = ' where '.$components['where'];
-        }
-        if($components['group'] && 0 !== stripos(trim($components['group']),'group')){
-            $components['group'] = ' group by '.$components['group'];
-        }
-        if( $components['having'] && 0 !== stripos(trim($components['having']),'having')){
-            $components['having'] = ' having '.$components['having'];
-        }
-        //去除order by
-        $components['order'] = preg_replace_callback('|order\s*by|i',function(){return '';},$components['order']);
-
-        //按照顺序连接，过滤掉一些特别的参数
-        foreach($components as $key=>&$val){
-            if(in_array($key,array('fields','order','distinct'))) continue;
-            $sql .= " {$val} ";
+        if($components['distinct']){
+            $sql = " SELECT DISTINCT {$components['fields']} FROM {$components['fields']} ";
+        }else{
+            $sql = " SELECT {$components['fields']} FROM {$components['fields']} ";
         }
 
-        $flag = true;//标记是否需要再次设置order by
+        //顺序连接
+        $components['join']     and $sql    = "{$sql} {$components['join']}";
+        $components['where']    and $sql    = "{$sql} WHERE {$components['where']}";
+        $components['group']    and $sql    = "{$sql} GROUP BY {$components['group']} ";
+        $components['having']   and $sql    = "{$sql} HAVING {$components['having']} ";
+        $components['order']    and $sql    = "{$sql} ORDER BY {$components['order']} ";
 
-        //是否湖区偏移
-        if(NULL !== $offset && NULL !== $limit){
-            $outerOrder = ' order by ';
-            if(!empty($components['order'])){
-                //去掉其中的order by
-                $orders = @explode(',',$components['order']);//分隔多个order项目
-
-                foreach($orders as &$val){
-                    $segs = @explode('.',$val);
-                    $outerOrder .= array_pop($segs).',';
-                }
-                $outerOrder  = rtrim($outerOrder,',');
-            }else{
-                $outerOrder .= ' rand() ';
-            }
-            $endIndex = $offset+$limit;
-            $sql = "SELECT T1.* FROM (
-            SELECT  ROW_NUMBER() OVER ( {$outerOrder} ) AS ROW_NUMBER,thinkphp.* FROM ( {$sql} ) AS thinkphp
-            ) AS T1 WHERE (T1.ROW_NUMBER BETWEEN 1+{$offset} AND {$endIndex} )";
-            $flag = false;
+        if(isset($components['limit'])){
+            $sql = isset($components['offset'])?
+                "{$sql} LIMIT {$components['offset']},{$components['limit']}" :
+                "{$sql} LIMIT {$components['limit']}";
         }
-        if($flag && !empty($components['order'])){
-            $sql .= ' order by '.$components['order'];
-        }
-        return $sql;
+        return "{$sql};";
     }
 
 
     public function getTables($namelike = '%',$dbname=null){
-        $sql    = isset($dbname)?"SHOW TABLES FROM  $dbname  LIKE '$namelike' ":"SHOW TABLES   LIKE '$namelike' ";
+        $sql    = isset($dbname)?
+            "SHOW TABLES FROM  {$dbname}  LIKE '{$namelike}' ":
+            "SHOW TABLES  LIKE '{$namelike}' ";
         $result = $this->query($sql)->fetchAll();
-        $info   =   array();
+        $info   = [];
         foreach ($result as $key => $val) {
             $info[$key] = current($val);
         }
@@ -114,7 +93,7 @@ class Mysql extends ExtPDO{
 
 
     public function escapeField($fieldname){
-        return self::$_l_quote.$fieldname.self::$_r_quote;
+        return self::$_l_quote.trim($fieldname).self::$_r_quote;
     }
 
     /**
@@ -123,37 +102,11 @@ class Mysql extends ExtPDO{
      */
     public function buildDSN($config){
         $dsn  =  "mysql:host={$config['host']}";
-        if(isset($config['dbname'])){
-            $dsn .= ";dbname={$config['dbname']}";
-        }
-        if(!empty($config['port'])) {
-            $dsn .= ';port=' . $config['port'];
-        }
-        if(!empty($config['socket'])){
-            $dsn  .= ';unix_socket='.$config['socket'];
-        }
-        if(!empty($config['charset'])){
-            $dsn  .= ';charset='.$config['charset'];
-        }
+        $config['dbname']   and $dsn = "{$dsn};dbname={$config['dbname']}";
+        $config['port']     and $dsn = "{$dsn};port={$config['port']}";
+        $config['socket']   and $dsn = "{$dsn};unix_socket={$config['socket']}";
+        $config['charset']  and $dsn = "{$dsn};charset={$config['charset']}";
         return $dsn;
-    }
-
-    public function buildSqlByComponent($tablename,$componets=[],$offset=null,$limit=null){
-
-
-
-
-    }
-
-    /**
-     * 根据SQL的各个组成部分创建SQL查询语句
-     * @param string $tablename 数据表的名称
-     * @param array $compos sql组成部分
-     * @param int $offset
-     * @param int $limit
-     * @return string
-     */
-    public function buildSql($tablename,array $compos,$offset=NULL,$limit=NULL){
     }
 
     /**

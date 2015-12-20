@@ -32,5 +32,15 @@ return [
         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,//结果集返回形式
     ],
     //从连接库
-    'SLAVE_CONFS'    =>   [],
+    'SLAVE_CONFS'           =>   [],
+
+
+
+
+
+    //--------------模型配置 ---------------------//
+    //数据表的默认前缀
+    'DEFAULT_TABLE_PREFIX'  => 'co_',
+    //默认的主键名称
+    'DEFAULT_PRIMAR_KEY'    => 'id',
 ];

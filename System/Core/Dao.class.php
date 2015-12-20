@@ -6,7 +6,7 @@
  * Time: 10:59
  */
 namespace System\Core;
-use System\Core\Dao\ExtPDO;
+use System\Core\Dao\AbstractPDO;
 use System\Exception\CoraxException;
 use System\Util\SEK;
 
@@ -27,7 +27,7 @@ class Dao{
 
     /**
      * 保存数据库的驱动，在类构造的过程中初始化
-     * @var ExtPDO
+     * @var AbstractPDO
      */
     public $driver;
 
@@ -102,12 +102,14 @@ class Dao{
             if(!isset($config['type'],$config['username'],$config['password'])){
                 throw new CoraxException("The connect config needs 'type','username','password' at least");
             }
-        }else{
+        }elseif(is_string($config) or is_numeric($config)){
             if(isset(self::$convention['SLAVE_CONFS'][$config])){
                 $config = self::$convention['SLAVE_CONFS'][$config];
             }else{
                 throw new CoraxException("Can not find the connect congfig named '{$config}'");
             }
+        }else{
+            throw new CoraxException('Invalid parameter!');
         }
 
         //默认的PDO连接配置
@@ -130,9 +132,11 @@ class Dao{
      * @return void
      */
     public static function init($confnm='database'){
-        $config = Configer::load($confnm);
-        SEK::merge(static::$convention,$config);//动态配置载入
-        self::$_hasInited = true;
+        if(false === self::$_hasInited){
+            $config = Configer::load($confnm);
+            SEK::merge(static::$convention,$config);//动态配置载入
+            self::$_hasInited = true;
+        }
     }
 
     /**
@@ -140,20 +144,24 @@ class Dao{
      * 当设置参数二时，将选用参数二作为连接配置创建连接并命名为参数一表示的标识符
      * @param int|string|array $identifier 连接标识符，可以自己创建或者选自self::$_conf['DB_CONNECT']
      *                  如果参数一时数组，则被认为是临时配置，不会被记录，需要用户自己保存好句柄
-     * @param array|null $connect_config
      * @return Dao
      * @throws CoraxException
      */
-    public static function getInstance($identifier=0,array $connect_config=null){
+    public static function getInstance($identifier=null){
         self::$_hasInited or self::init();
         if(isset(self::$daoPool[$identifier])){
             return self::$daoPool[$identifier];
         }
 
-        if(is_array($identifier)){//新建一个连接
+        //获取配置信息
+        if(null === $identifier){
+            $connect_config = self::$convention['MASTER_CONF'];
+        }elseif(is_array($identifier)){//新建一个连接
             $connect_config = $identifier;
-        }elseif(!isset($connect_config)){
-            $connect_config = self::$convention['DB_CONNECT'][$identifier];
+        }elseif(isset(self::$convention['SLAVE_CONFS'][$identifier])){
+            $connect_config = self::$convention['SLAVE_CONFS'][$identifier];
+        }else{
+            throw new CoraxException("Invalid config of connection {$identifier}!");
         }
         return self::$daoPool[$identifier] = new Dao($connect_config);
     }
@@ -551,7 +559,7 @@ class Dao{
 
 
 
-/*TODO:扩张方法 ******************************************************************************************/
+/*TODO:扩展方法 ******************************************************************************************/
     /**
      * 添加数据
      * <code>
@@ -770,18 +778,16 @@ class Dao{
      *      );
      * </note>
      * @param $map
-     * @param bool $and 表示是否使用and作为连接符，false时为,
+     * @param string $connect 表示是否使用and作为连接符，false时为,
      * @return array
      */
-    protected function makeSegments($map,$and=true){
+    public function makeSegments($map,$connect='and'){
         //初始值与参数检测
-        $bind = array();
+        $bind = [];
         $sql = '';
         if(empty($map)){
-            return array($sql,$bind);
+            return [$sql,$bind];
         }
-        $connect = $and?'and':',';
-
 
         //元素连接
         foreach($map as $key=>$val){
@@ -794,12 +800,12 @@ class Dao{
                     !empty($val[3])
                 );
                 if(is_array($rst)){
-                    $sql .= " {$rst[0]} $connect";
+                    $sql .= " {$rst[0]} {$connect}";
                     $bind = array_merge($bind, $rst[1]);
                 }
             }elseif(is_array($val) and strpos($val[0],':') === 0){
                 //第三种情况,复杂类型，由用户自定义
-                $sql .= " {$key} $connect";
+                $sql .= " {$key} {$connect}";
                 $bind[$val[0]] = $val[1];
             }else{
                 //第一种情况
@@ -812,7 +818,7 @@ class Dao{
                 }
                 $rst = $this->makeFieldBind($key,trim($val),$operator,$translate);//第一种情况一定是'='的情况
                 if(is_array($rst)){
-                    $sql .= " {$rst[0]} $connect";
+                    $sql .= " {$rst[0]} {$connect}";
                     $bind = array_merge($bind, $rst[1]);
                 }
             }
@@ -826,25 +832,12 @@ class Dao{
 
 
     /**
-     * 根据条件获得查询的SQL，SQL执行的正确与否需要实际查询才能得到验证
-     * @param string $tablename 查找的表名称,不需要带上from部分
-     * @param array $components  复杂SQL的组成部分
-     * @param null|integer $offset 偏移
-     * @param null|integer $limit  选择的最大的数据量
-     * @return string
-     */
-    public function buildSql($tablename,array $components=[],$offset=NULL,$limit=NULL){
-        return $this->driver->buildSqlByComponent($tablename,$components,$offset,$limit);
-    }
-
-    /**
      * 编译组件成适应当前数据库的SQL字符串
-     * @param string $tablename 查找的表名称,不需要带上from部分
      * @param array $components  复杂SQL的组成部分
      * @return string
      */
-    public function compile($tablename,$components){
-        return $this->driver->compile($tablename,$components);
+    public function compile($components){
+        return $this->driver->compile($components);
     }
 
 
@@ -858,6 +851,14 @@ class Dao{
         return $this->driver->getFields($tableName);
     }
 
+    /**
+     * 转义保留字字段名称
+     * @param string $fieldname 字段名称
+     * @return string
+     */
+    public function escape($fieldname){
+        return $this->driver->escapeField($fieldname);
+    }
 
     /**
      * 执行结果信息返回
