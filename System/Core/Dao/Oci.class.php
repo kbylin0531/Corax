@@ -7,7 +7,7 @@
  */
 namespace System\Core\Dao;
 
-class Oci extends DatabaseDriver {
+class Oci extends ExtPDO {
     /**
      * @param array $config
      * @return string

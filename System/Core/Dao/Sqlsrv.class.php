@@ -7,7 +7,7 @@
  */
 namespace System\Core\Dao;
 
-class Sqlsrv extends DatabaseDriver {
+class Sqlsrv extends ExtPDO {
     /**
      * @param array $config
      * @return string
