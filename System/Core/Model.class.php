@@ -6,13 +6,12 @@
  * Time: 10:17
  */
 namespace System\Core;
+use System\Exception\CoraxException;
 use System\Util\SEK;
 
 defined('BASE_PATH') or die('No Permission!');
 /**
  * Class Model 模型类
- * 一个模型对应一个数据表
- * 完成基本的CURD操作
  * @package System\Core
  */
 class Model{
@@ -22,6 +21,14 @@ class Model{
      * @var Dao
      */
     protected $dao = null;
+
+    /**
+     * 开关
+     * @var array
+     */
+    protected static $_switcher = array(
+        'SHOW_ERROR' => true,//决定是否向用户显示错误信息
+    );
 
     /**
      * 字段映射
@@ -62,26 +69,27 @@ class Model{
      * 模型名称，不包含命名空间部分和Model后缀
      * @var string
      */
-    protected $model_name = null;
+    protected $modelname = null;
 
     /**
      * 模型所属模块名称
      * @var string
      */
-    protected $modules_name = null;
+    protected $modulesname = null;
 
     /**
      * 构造函数
      * @param array $config 模型配置选项(array)
-     * @throws \Exception
+     * @throws CoraxException
      */
-    public function __construct($config=null){
+    public function __construct(array $config=null){
         $matches = null;
-        if(preg_match('/^Application\\\(.*)\\\Model\\\(.*)Model$/',get_called_class(),$matches)){
-            $this->modules_name = str_replace('\\','/',$matches[1]);
-            $this->model_name = $matches[2];
+        $currentModelName = get_called_class();
+        if(preg_match('/^Application\\\(.*)\\\Model\\\(.*)Model$/',$currentModelName,$matches)){
+            $this->modulesname = str_replace('\\','/',$matches[1]);
+            $this->modelname = $matches[2];
         }else{
-            throw new \Exception('Class "'.get_called_class().'" auto fetch falied!');
+            throw new CoraxException("Class {$currentModelName} auto fetch falied!");
         }
         if(isset($config)){
             //动态设置属性
@@ -95,6 +103,7 @@ class Model{
                 $this->setTableName($modelname);
             }
         }
+        $this->reset();
     }
 
     /**
@@ -232,4 +241,156 @@ class Model{
         isset($tablename) or $tablename = $this->getTableName();
         return $this->dao->delete($tablename,$where);
     }
+
+    /**
+     * SQL各个组成部分
+     * @var array
+     */
+    protected $components = [];
+    /**
+     * 输入绑定参数
+     * @var array
+     */
+    protected $input_params = [];
+
+    /**
+     * 重置组件和input_params设置
+     */
+    public function reset(){
+        $this->components = [
+            /**
+             * 用于告诉SQL服务器返回唯一不同的值的集合
+             */
+            'distinct'  =>  null,
+            /**
+             * 不同的数据库用法是不同的
+             * SQL server   ：SELECT TOP number|percent column_name(s) FROM table_name
+             * MySQL        :SELECT column_name(s) FROM table_name LIMIT number
+             * Oracel       :SELECT column_name(s) FROM table_name WHERE ROWNUM <= number
+             */
+            'top'           => null,
+            'top_percent'   => false,//针对MSSQL有效
+            /**
+             * 表示获取表的列的名称
+             */
+            'fields'=>' * ', //查询的表域情况
+            'join'  => null,     //join部分，需要带上join关键字
+            'where' => null, //where部分
+            'group' => null, //分组 需要带上group by
+            'having'=> null,//having子句，依赖$group存在，需要带上having部分
+            'order' => null,//排序，不需要带上order by
+            /**
+             * 注意limit可能会与top在MYSQL数据库中使用冲突(两个limit)
+             * Oracel和MSSQL无法使用limit关键字
+             */
+            'offset'=> null,
+            'limit' => null,
+        ];
+        $this->input_params = [];
+    }
+
+    /**
+     * 表示是否设置distinct
+     * @param bool $isdist
+     * @return $this 用于链式调用
+     */
+    public function distinct($isdist=null){
+        null !== $isdist and $this->components['distinct'] = ' DISTINCT ';
+        return $this;
+    }
+
+    /**
+     * 表示是否设置top
+     * @param null|int $number 获取的数量
+     * @param bool $isPercent
+     * @return $this 用于链式调用
+     */
+    public function top($number=null,$isPercent=false){
+        null !== $number and $this->components['top'] = $number;
+        $isPercent and $this->components['top_percent'] = true;
+        return $this;
+    }
+
+    /**
+     * 设置获取的表域
+     * @param null|string $fields 不设置参数时获取全部
+     * @return $this
+     */
+    public function fields($fields=null){
+        null !== $fields and $this->components['fields'] = $fields;
+        return $this;
+    }
+
+    /**
+     * 设置join部分
+     * @param null|string $join
+     * @return $this
+     */
+    public function join($join = null){
+        null !== $join and $this->components['join'] = $join;
+        return $this;
+    }
+
+    /**
+     * 设置where部分
+     * @param null|string $where
+     * @return $this
+     */
+    public function where($where = null){
+        null !== $where and $this->components['where'] = $where;
+        return $this;
+    }
+    /**
+     * 设置group部分
+     * @param null|string $group
+     * @return $this
+     */
+    public function group($group = null){
+        null !== $group and $this->components['group'] = $group;
+        return $this;
+    }
+    /**
+     * 设置having部分
+     * @param null|string $having
+     * @return $this
+     */
+    public function having($having = null){
+        null !== $having and $this->components['having'] = $having;
+        return $this;
+    }
+
+    /**
+     * 设置order部分
+     * @param null|string $order
+     * @return $this
+     */
+    public function order($order = null){
+        null !== $order and $this->components['order'] = $order;
+        return $this;
+    }
+
+    /**
+     * 设置偏移和数量限制
+     * @param null $limit
+     * @param null $offset
+     * @return $this
+     */
+    public function limit($limit=null,$offset=null){
+        null !== $limit  and $this->components['limit']  = $limit;
+        null !== $offset and $this->components['offset'] = $offset;
+        return $this;
+    }
+
+    /**
+     * 变异组件并返回SQL语句和绑定参数
+     * @param bool|true $clear 变异完成后是否清空，默认清空
+     * @return string
+     */
+    public function compile($clear=true){
+        $sql = $this->dao->compile($this->components);
+        $bind = $this->input_params;
+        $clear and $this->reset();
+        return [$sql,$bind];
+    }
+
 }

@@ -1,6 +1,10 @@
 # [Bootstrap Table](http://bootstrap-table.wenzhixin.net.cn)
 
-DOC:http://issues.wenzhixin.net.cn/bootstrap-table/index.html
+DOC:
+http://issues.wenzhixin.net.cn/bootstrap-table/index.html
+http://bootstrap-table.wenzhixin.net.cn/documentation/
+
+
 
 [![Build Status](https://travis-ci.org/wenzhixin/bootstrap-table.svg)](https://travis-ci.org/wenzhixin/bootstrap-table) 
 [![GitHub version](https://badge.fury.io/gh/wenzhixin%2Fbootstrap-table.svg)](http://badge.fury.io/gh/wenzhixin%2Fbootstrap-table)

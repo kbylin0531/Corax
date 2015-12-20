@@ -15,47 +15,29 @@ defined('BASE_PATH') or die('No Permission!');
  * Class MysqlDriver
  * @package System\Core\DaoDriver
  */
-class Mysql extends Base{
+class Mysql extends ExtPDO{
 
     protected static $_l_quote = '`';
     protected static $_r_quote = '`';
 
 
-    public function __construct($dsn,$username,$password,$option=array()){
+    public function __construct(array $config){
         //检查扩展是否开启
         if(!SEK::phpExtend('pdo_mysql')){
 //            dl('pdo_mysql');
-            throw new CoraxException('pdo_mysql');
+            throw new CoraxException('Please extend pdo_mysql');
         }
-//        Util::dump($dsn,$username,$password,$option);exit;
-        parent::__construct($dsn,$username,$password,$option);
+        parent::__construct($config);
     }
-
-    public function getTables($namelike = '%',$dbname=null){
-        $sql    = isset($dbname)?"SHOW TABLES FROM  $dbname  LIKE '$namelike' ":"SHOW TABLES   LIKE '$namelike' ";
-        $result = $this->query($sql)->fetchAll();
-        $info   =   array();
-        foreach ($result as $key => $val) {
-            $info[$key] = current($val);
-        }
-        return $info;
-    }
-
-
-    public function escapeField($fieldname){
-        return self::$_l_quote.$fieldname.self::$_r_quote;
-    }
-
 
     /**
-     * 根据SQL的各个组成部分创建SQL查询语句
-     * @param string $tablename 数据表的名称
-     * @param array $compos sql组成部分
-     * @param int $offset
-     * @param int $limit
+     * 编译组件成适应当前数据库的SQL字符串
+     * @param string $tablename 查找的表名称,不需要带上from部分
+     * @param array $components  复杂SQL的组成部分
      * @return string
      */
-    public function buildSql($tablename,array $compos,$offset=NULL,$limit=NULL){
+    public function compile($tablename,$components){
+
         $components = array(
             'distinct'=>'',
             'fields'=>' * ', //查询的表域情况
@@ -117,6 +99,61 @@ class Mysql extends Base{
             $sql .= ' order by '.$components['order'];
         }
         return $sql;
+    }
+
+
+    public function getTables($namelike = '%',$dbname=null){
+        $sql    = isset($dbname)?"SHOW TABLES FROM  $dbname  LIKE '$namelike' ":"SHOW TABLES   LIKE '$namelike' ";
+        $result = $this->query($sql)->fetchAll();
+        $info   =   array();
+        foreach ($result as $key => $val) {
+            $info[$key] = current($val);
+        }
+        return $info;
+    }
+
+
+    public function escapeField($fieldname){
+        return self::$_l_quote.$fieldname.self::$_r_quote;
+    }
+
+    /**
+     * @param array $config
+     * @return string
+     */
+    public function buildDSN($config){
+        $dsn  =  "mysql:host={$config['host']}";
+        if(isset($config['dbname'])){
+            $dsn .= ";dbname={$config['dbname']}";
+        }
+        if(!empty($config['port'])) {
+            $dsn .= ';port=' . $config['port'];
+        }
+        if(!empty($config['socket'])){
+            $dsn  .= ';unix_socket='.$config['socket'];
+        }
+        if(!empty($config['charset'])){
+            $dsn  .= ';charset='.$config['charset'];
+        }
+        return $dsn;
+    }
+
+    public function buildSqlByComponent($tablename,$componets=[],$offset=null,$limit=null){
+
+
+
+
+    }
+
+    /**
+     * 根据SQL的各个组成部分创建SQL查询语句
+     * @param string $tablename 数据表的名称
+     * @param array $compos sql组成部分
+     * @param int $offset
+     * @param int $limit
+     * @return string
+     */
+    public function buildSql($tablename,array $compos,$offset=NULL,$limit=NULL){
     }
 
     /**

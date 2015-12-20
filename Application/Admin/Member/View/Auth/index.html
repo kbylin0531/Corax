@@ -41,8 +41,13 @@
                data-page-list="[10,20,50]"
                data-detail-view="true"
                data-detail-formatter="detailFormatter"
-
                data-ajax="ajaxRequest"
+
+
+               data-search="true"
+               data-show-refresh="true"
+               data-show-toggle="true"
+               data-show-columns="true"
                 >
             <thead>
                 <tr>
@@ -451,6 +456,7 @@
             });
         }
 
+
         $(function () {
             var table = $('#table');
             var search_form = $("#search_form");
@@ -458,7 +464,9 @@
                 data:data
             });
 
-
+            table.on('page-change.bs.table', function (event, size) {
+                console.log(event, size);
+            });
 
             $("#ok").click(function () {
                 console.log(search_form.serialize());
