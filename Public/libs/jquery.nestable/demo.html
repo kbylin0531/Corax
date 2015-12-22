@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link href="assets/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="assets/font-awesome.min.css">
+	<link rel="stylesheet" href="assets/jquery.nestable.css">
+</head>
+<body>
+	<div class="dd" id="nestable">
+		<ol class="dd-list" >
+			<!-- ID是必须的选项  也可以自己设置属性，如data-name在序列化的时候可以得到name属性 -->
+			<li class="dd-item" data-id="1" data-name="last night">
+				<div class="dd-handle">
+					Item 1
+				</div>
+			</li>
+
+			<li class="dd-item" data-id="2">
+				<div class="dd-handle">Item 2</div>
+
+				<ol class="dd-list">
+					<li class="dd-item" data-id="3">
+						<div class="dd-handle">
+							Item 3
+						</div>
+					</li>
+					<li class="dd-item" data-id="4">
+						<div class="dd-handle">
+							<span class="orange">Item 4</span>
+							<span class="lighter grey">&nbsp; with some description</span>
+						</div>
+					</li>
+					<li class="dd-item" data-id="5">
+						<div class="dd-handle">
+							Item 5
+						</div>
+						<ol class="dd-list">
+							<li class="dd-item item-orange" data-id="6">
+								<div class="dd-handle"> Item 6 </div>
+							</li>
+
+							<li class="dd-item item-red" data-id="7">
+								<div class="dd-handle">Item 7</div>
+							</li>
+
+							<li class="dd-item item-blue2" data-id="8">
+								<div class="dd-handle">Item 8</div>
+							</li>
+						</ol>
+					</li>
+					<li class="dd-item" data-id="9">
+						<div class="dd-handle btn-yellow no-hover">Item 9</div>
+					</li>
+					<li class="dd-item" data-id="10">
+						<div class="dd-handle">Item 10</div>
+					</li>
+				</ol>
+			</li>
+			<li class="dd-item" data-id="11">
+				<div class="dd-handle">
+					Item 11
+				</div>
+			</li>
+			<li class="dd-item" data-id="12" >
+				<div class="dd-handle">Item 12</div>
+			</li>
+		</ol>
+	</div>
+
+	<script src="assets/jquery-2.0.3.min.js"></script>
+	<script src="assets/bootstrap.min.js"></script>
+	<script src="assets/jquery.nestable.min.js"></script>
+	<script type="text/javascript">
+		jQuery(function($){
+			var nestable = $('.dd').nestable({/*配置项*/}).on('change', function (e) {
+				//获取序列化的JSON数据
+				console.log(nestable.nestable('serialize'));
+			});
+		});
+	</script>
+</body>
+</html>
